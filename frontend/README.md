@@ -1,50 +1,17 @@
-# React + TypeScript + Vite
+# Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Colors to use
 
-Currently, two official plugins are available:
+[Pallete link](https://coolors.co/463f3a-8a817c-bcb8b1-f4f3ee-e0afa0)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Breakdown of Your Color Palette:
+- #463f3a - A dark brownish-gray, which is excellent for backgrounds, text, or as an accent.
+- #8a817c - A soft taupe, ideal for secondary backgrounds or subtle elements.
+- #bcb8b1 - A light, warm gray that works well for secondary backgrounds or as a contrast to darker elements.
+- #f4f3ee - A very light, almost white, beige, perfect for backgrounds or as a neutral space.
+- #e0afa0 - A warm, earthy light tan that can be used for highlights, buttons, or accents.
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
-
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
-
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+Backgrounds: Use #f4f3ee and #bcb8b1 for page backgrounds or larger areas for a clean look.
+Text: The darker color, #463f3a, would be effective for headers or main text.
+Buttons/Accents: #e0afa0 can be used for interactive elements like buttons or highlights to draw attention.
+Borders and Dividers: #8a817c and #bcb8b1 would be suitable for subtle dividers or borders.
