@@ -7,12 +7,10 @@ interface ProtectedRouteProps {
 const PrivateRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const token = localStorage.getItem("token");
 
-  // If no token, redirect to login
   if (!token) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" state={{error: "You need to authenticate first"}} />;
   }
 
-  // Otherwise, render the Private content
   return children;
 };
 

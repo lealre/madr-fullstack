@@ -1,8 +1,16 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const Header: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const isAuthenticated = !!localStorage.getItem("token");
+
+  const handleLogout = () => {
+    localStorage.removeItem("token"); // Remove the token to log out
+    navigate("/", { state: { message: "You have successfully logged out." } }); // Redirect to login page
+  };
+
   return (
     <header style={{ backgroundColor: "#463f3a", padding: "10px 20px" }}>
       <div className="container-fluid d-flex justify-content-between align-items-center">
@@ -18,20 +26,33 @@ const Header: React.FC = () => {
             MADR
           </Link>
         </h1>
-        {/* Conditionally render the Login link based on the current route */}
-        {location.pathname !== "/login" && (
-          <Link
-            to="/login"
-            className="btn"
+        {/* Conditionally render Login or Logout based on authentication status */}
+        {isAuthenticated ? (
+          <button
+            onClick={handleLogout}
             style={{
-              backgroundColor: "#e0afa0",
-              color: "#463f3a",
-              borderColor: "#bcb8b1",
-              textDecoration: "none",
+              backgroundColor: "transparent",
+              border: "none",
+              color: "#f4f3ee",
+              cursor: "pointer",
+              fontSize: "18px",
             }}
           >
-            Login
-          </Link>
+            Logout
+          </button>
+        ) : (
+          location.pathname !== "/login" && (
+            <Link
+              to="/login"
+              style={{
+                color: "#f4f3ee",
+                textDecoration: "none",
+                fontSize: "18px",
+              }}
+            >
+              Login
+            </Link>
+          )
         )}
       </div>
     </header>
