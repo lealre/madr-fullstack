@@ -1,5 +1,6 @@
 import React from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Box, Flex, Heading, Button, Link } from "@chakra-ui/react";
+import { useLocation, useNavigate, Link as RouterLink } from "react-router-dom";
 
 const Header: React.FC = () => {
   const location = useLocation();
@@ -12,50 +13,52 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header style={{ backgroundColor: "#463f3a", padding: "10px 20px" }}>
-      <div className="container-fluid d-flex justify-content-between align-items-center">
-        <h1 style={{ color: "#f4f3ee", margin: 0 }}>
+    <Box bg="teal.600" py={2}>
+      <Flex
+        justify="space-between"
+        align="center"
+        maxWidth="1200px"
+        mx="auto"
+        px={4}
+      >
+        <Heading size="lg" color="white" margin={0}>
           <Link
-            to="/"
-            style={{
-              color: "inherit",
-              cursor: "pointer",
-              textDecoration: "none",
-            }}
+            style={{ textDecoration: "none" }}
+            variant="plain"
+            color="white"
+            _hover={{ color: "gray.200" }}
           >
             MADR
           </Link>
-        </h1>
+        </Heading>
+
         {/* Conditionally render Login or Logout based on authentication status */}
         {isAuthenticated ? (
-          <button
+          <Button
+            variant="plain" // Makes the button look like a link
+            color="white" // Sets the text color to white
+            fontSize="18px" // Sets the font size
+            _hover={{ textDecoration: "none", color: "gray.200" }} // Removes underline and changes color on hover
             onClick={handleLogout}
-            style={{
-              backgroundColor: "transparent",
-              border: "none",
-              color: "#f4f3ee",
-              cursor: "pointer",
-              fontSize: "18px",
-            }}
           >
             Logout
-          </button>
+          </Button>
         ) : (
           location.pathname !== "/login" && (
-            <Link
-              to="/login"
-              style={{
-                color: "#f4f3ee",
-                textDecoration: "none",
-                fontSize: "18px",
-              }}
-            >
-              Login
-            </Link>
+            <RouterLink to="/login">
+              <Link
+                variant="plain"
+                color="white"
+                fontSize="18px"
+                _hover={{ textDecoration: "none", color: "gray.200" }}
+              >
+                Login
+              </Link>
+            </RouterLink>
           )
         )}
-      </div>
-    </header>
+      </Flex>
+    </Box>
   );
 };
 

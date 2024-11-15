@@ -1,9 +1,12 @@
-import axios from "axios";
-import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Button, Card, Flex, Input, Stack } from "@chakra-ui/react";
+import { Field } from "@/components/ui/field";
+import axios from "axios";
 
 import api from "../api.ts";
 import Header from "../components/Header.tsx";
+import AlertMessage from "../components/AlertMessage";
 
 export default function LoginPage() {
   const [username, setUsername] = useState<string>("");
@@ -72,85 +75,59 @@ export default function LoginPage() {
   return (
     <>
       <Header />
-      <div
-        className="d-flex justify-content-center align-items-center"
-        style={{
-          backgroundColor: "#f4f3ee",
-          minHeight: "70vh",
-          padding: "20px",
-        }}
+      <Flex
+        direction="column"
+        justify="center"
+        align="center"
+        height="75vh"
       >
-        <div
-          className="card p-4"
-          style={{
-            maxWidth: "400px",
-            width: "100%",
-            backgroundColor: "#bcb8b1",
-          }}
-        >
-          <h2 className="text-center mb-4" style={{ color: "#463f3a" }}>
-            Login
-          </h2>
-          <form onSubmit={handleLogin}>
-            <div className="mb-3">
-              <input
-                type="text"
-                className="form-control"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Username"
-                required
-                style={{ borderColor: "#8a817c" }}
-              />
-            </div>
-            <div className="mb-3">
-              <input
-                type="password"
-                className="form-control"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
-                required
-                style={{ borderColor: "#8a817c" }}
-              />
-            </div>
-            <button
-              type="submit"
-              className="btn w-100"
-              style={{
-                backgroundColor: "#e0afa0",
-                color: "#463f3a",
-                borderColor: "#bcb8b1",
-              }}
-            >
-              Login
-            </button>
-          </form>
-        </div>
-        {error && (
-          <div
-            className="alert alert-danger alert-dismissible fade show"
-            role="alert"
-            style={{
-              position: "fixed",
-              bottom: "20px",
-              left: "50%",
-              transform: "translateX(-50%)",
-              zIndex: 1000,
-              animation: "slideUp 0.3s ease-out forwards"
-            }}
-          >
-            {error}
-            <button
-              type="button"
-              className="btn-close"
-              data-bs-dismiss="alert"
-              aria-label="Close"
-              onClick={() => setError("")}
-            ></button>
-          </div>
-        )}
-      </div>
+        <form onSubmit={handleLogin}>
+          <Card.Root maxW="sm">
+            <Card.Header>
+              <Card.Title>Sign up</Card.Title>
+              <Card.Description>
+                Fill in the form below to create an account
+              </Card.Description>
+            </Card.Header>
+            <Card.Body>
+              <Stack gap="4" w="full">
+                <Field label="Email">
+                  <Input
+                    type="text"
+                    required
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                  />
+                </Field>
+                <Field label="Password">
+                  <Input
+                    required
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </Field>
+              </Stack>
+            </Card.Body>
+            <Card.Footer justifyContent="flex-end">
+              <Button
+                colorPalette="teal"
+                variant="outline"
+                onClick={() => {
+                  setUsername("");
+                  setPassword("");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button colorPalette="teal" variant="solid" type="submit">
+                Sign in
+              </Button>
+            </Card.Footer>
+          </Card.Root>
+        </form>
+        {error && <AlertMessage type="error" message={error} />}
+      </Flex>
     </>
   );
 }

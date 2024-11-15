@@ -24,7 +24,7 @@ const Dashboard: React.FC = () => {
   }, []);
   return (
     <>
-        <Header />
+      <Header />
 
       <div className="container text-center mt-5">
         <table

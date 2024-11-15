@@ -1,14 +1,13 @@
-import {useLocation, useNavigate } from "react-router-dom";
-
+import { useLocation, useNavigate } from "react-router-dom";
+import AlertMessage from "../components/AlertMessage";
 
 import Header from "../components/Header";
 import { useEffect, useState } from "react";
 
 const HomePage: React.FC = () => {
-  const [message, setMessage] = useState<string>('')
-  const location = useLocation()
+  const [message, setMessage] = useState<string>("");
+  const location = useLocation();
   const navigate = useNavigate();
-
 
   useEffect(() => {
     if (location.state?.message) {
@@ -29,36 +28,11 @@ const HomePage: React.FC = () => {
       <Header />
       <div className="container text-center mt-5">
         <h1 style={{ color: "#463f3a" }}>Welcome to MADR App!</h1>
-        <p style={{ color: "#8a817c" }}>
-          This is an introduction to the app.
-        </p>
-        {message && (
-          <div
-            className="alert-modal"
-            style={{
-              position: "fixed",
-              bottom: "20px",
-              left: "50%",
-              transform: "translateX(-50%)",
-              maxWidth: "400px",
-              width: "90%",
-              backgroundColor: "#d4edda",
-              color: "#155724",
-              borderColor: "#c3e6cb",
-              padding: "15px",
-              borderRadius: "5px",
-              boxShadow: "0 2px 10px rgba(0, 0, 0, 0.2)",
-              textAlign: "center",
-              zIndex: 1000,
-            }}
-          >
-            {message}
-          </div>
-        )}
+        <p style={{ color: "#8a817c" }}>This is an introduction to the app.</p>
+        {message && <AlertMessage type="info" message={message} />}
       </div>
     </>
   );
 };
-
 
 export default HomePage;
