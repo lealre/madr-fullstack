@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Flex, Heading, Button, Link } from "@chakra-ui/react";
-import { useLocation, useNavigate, Link as RouterLink } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const Header: React.FC = () => {
   const location = useLocation();
@@ -23,6 +23,7 @@ const Header: React.FC = () => {
       >
         <Heading size="lg" color="white" margin={0}>
           <Link
+            href="/"
             style={{ textDecoration: "none" }}
             variant="plain"
             color="white"
@@ -45,16 +46,16 @@ const Header: React.FC = () => {
           </Button>
         ) : (
           location.pathname !== "/login" && (
-            <RouterLink to="/login">
-              <Link
-                variant="plain"
-                color="white"
-                fontSize="18px"
-                _hover={{ textDecoration: "none", color: "gray.200" }}
-              >
-                Login
-              </Link>
-            </RouterLink>
+            <Link
+              href="/login"
+              style={{ textDecoration: "none" }}
+              variant="plain"
+              color="white"
+              fontSize="18px"
+              _hover={{ color: "gray.200" }}
+            >
+              Login
+            </Link>
           )
         )}
       </Flex>

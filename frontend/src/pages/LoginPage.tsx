@@ -75,17 +75,12 @@ export default function LoginPage() {
   return (
     <>
       <Header />
-      <Flex
-        direction="column"
-        justify="center"
-        align="center"
-        height="75vh"
-      >
+      <Flex direction="column" justify="center" align="center" height="75vh">
         <form onSubmit={handleLogin}>
-          <Card.Root maxW="sm">
+          <Card.Root maxW="sm" colorPalette="teal" layerStyle="fill.subtle">
             <Card.Header>
               <Card.Title>Sign up</Card.Title>
-              <Card.Description>
+              <Card.Description color="teal.600">
                 Fill in the form below to create an account
               </Card.Description>
             </Card.Header>
@@ -93,6 +88,7 @@ export default function LoginPage() {
               <Stack gap="4" w="full">
                 <Field label="Email">
                   <Input
+                    borderColor="teal.300"
                     type="text"
                     required
                     value={username}
@@ -101,6 +97,7 @@ export default function LoginPage() {
                 </Field>
                 <Field label="Password">
                   <Input
+                    borderColor="teal.300"
                     required
                     type="password"
                     value={password}
@@ -111,8 +108,6 @@ export default function LoginPage() {
             </Card.Body>
             <Card.Footer justifyContent="flex-end">
               <Button
-                colorPalette="teal"
-                variant="outline"
                 onClick={() => {
                   setUsername("");
                   setPassword("");
@@ -120,9 +115,7 @@ export default function LoginPage() {
               >
                 Cancel
               </Button>
-              <Button colorPalette="teal" variant="solid" type="submit">
-                Sign in
-              </Button>
+              <Button type="submit">Sign in</Button>
             </Card.Footer>
           </Card.Root>
         </form>

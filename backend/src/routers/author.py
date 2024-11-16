@@ -92,7 +92,8 @@ def get_author_with_name_like(
     offset: int = 0,
 ):
     if not name:
-        return {'authors': []}
+        authors_list = session.scalars( select(Author))
+        return {'authors': authors_list}
 
     query = select(Author).filter(Author.name.contains(name))
 

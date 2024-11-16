@@ -1,69 +1,112 @@
 import React, { useEffect, useState } from "react";
-import Header from "../components/Header";
+import { Text, Box, Flex, Container } from "@chakra-ui/react";
+import { Tabs } from "@chakra-ui/react";
+import { LuUser } from "react-icons/lu";
+import { IoBookSharp } from "react-icons/io5";
+import { FaUserAlt } from "react-icons/fa";
 import api from "../api";
+import Header from "../components/Header";
+import AuthorsTable, { AuthorsTableProps } from "../components/AuhtorsTable";
+import BooksTable, { BooksTableProps } from "../components/BooksTable";
 
-interface AuthorsProps {
-  id: number;
-  author: string;
+interface TabProps {
+  value: string;
 }
 
 const Dashboard: React.FC = () => {
-  const [authors, setAuthors] = useState<AuthorsProps[]>([]);
+  const [authors, setAuthors] = useState<AuthorsTableProps["authors"]>([]);
+  const [books, setBooks] = useState<BooksTableProps["books"]>([]);
+  const [tab, setTab] = useState<TabProps>({ value: "authors" });
+
+  useEffect(() => {
+    fetchAuthors();
+  }, []);
 
   const fetchAuthors = async (): Promise<void> => {
     try {
       const response = await api.get("/author/");
-      setAuthors(response.data);
+      setAuthors(response.data.authors);
     } catch (err) {
       console.log(err);
     }
   };
 
-  useEffect(() => {
-    fetchAuthors();
-  }, []);
+  const fetchBooks = async (): Promise<void> => {
+    try {
+      const response = await api.get("/book/");
+      setBooks(response.data.books);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const changeTabView = (e: any) => {
+    setTab(e);
+    e.value === "authors" ? fetchAuthors() : fetchBooks();
+  };
+
   return (
     <>
       <Header />
 
-      <div className="container text-center mt-5">
-        <table
-          className="table"
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            backgroundColor: "#bcb8b1",
-            color: "#463f3a",
-          }}
-        >
-          <thead style={{ backgroundColor: "#e0afa0" }}>
-            <tr>
-              <th style={{ padding: "10px", border: "1px solid #8a817c" }}>
-                Id
-              </th>
-              <th style={{ padding: "10px", border: "1px solid #8a817c" }}>
-                Author
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {authors.length > 0 ? (
-              authors.map((item) => (
-                <tr key={item.id}>
-                  <td style={{ padding: "10px", border: "1px solid #8a817c" }}>
-                    {item.id}
-                  </td>
-                  <td style={{ padding: "10px", border: "1px solid #8a817c" }}>
-                    {item.author}
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <p>No data found</p>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <Container maxW="800px" mx="auto">
+        <Flex mt={1} align="center">
+          <FaUserAlt size={20} style={{ marginRight: "8px" }} />
+          <Text fontSize="lg" alignItems="center">
+            test
+          </Text>
+        </Flex>
+
+        <Box mt={8}>
+          {/* Dashboard + Tabs */}
+          <Flex borderBottom="1px solid black" mb={3} justify="space-between">
+            <Text fontWeight="semibold" fontSize="40px" mb={0}>
+              Dashboard Area
+            </Text>
+
+            <Tabs.Root
+              defaultValue="authors"
+              onValueChange={(e) => changeTabView(e)}
+            >
+              <Tabs.List
+                display="flex"
+                alignItems="flex-end"
+                borderBottom="0px"
+                height="100%"
+              >
+                <Tabs.Trigger
+                  value="authors"
+                  _selected={{
+                    color: "black",
+                    fontWeight: "bold",
+                    borderBottom: "3px solid teal",
+                  }}
+                >
+                  <LuUser />
+                  Authors
+                </Tabs.Trigger>
+                <Tabs.Trigger
+                  value="books"
+                  _selected={{
+                    color: "black",
+                    fontWeight: "bold",
+                    borderBottom: "3px solid teal",
+                  }}
+                >
+                  <IoBookSharp />
+                  Books
+                </Tabs.Trigger>
+              </Tabs.List>
+            </Tabs.Root>
+          </Flex>
+
+          {tab.value === "authors" ? (
+            <AuthorsTable authors={authors} />
+          ) : (
+            <BooksTable books={books} />
+          )}
+        </Box>
+      </Container>
     </>
   );
 };
