@@ -50,3 +50,5 @@ useEffect(() => {
 ### Chakra UI
 
 [How to intall and config with vite](https://www.chakra-ui.com/docs/get-started/frameworks/vite)
+
+How to [extend the theme conifg](https://www.chakra-ui.com/docs/theming/customization/overview)

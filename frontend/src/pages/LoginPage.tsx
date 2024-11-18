@@ -77,7 +77,12 @@ export default function LoginPage() {
       <Header />
       <Flex direction="column" justify="center" align="center" height="75vh">
         <form onSubmit={handleLogin}>
-          <Card.Root maxW="sm" colorPalette="teal" layerStyle="fill.subtle">
+          <Card.Root
+            maxW="sm"
+            colorPalette="teal"
+            layerStyle="fill.subtle"
+            variant="elevated"
+          >
             <Card.Header>
               <Card.Title>Sign up</Card.Title>
               <Card.Description color="teal.600">

@@ -1,8 +1,8 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import AlertMessage from "../components/AlertMessage";
-
 import Header from "../components/Header";
 import { useEffect, useState } from "react";
+import { Box, Flex, Text } from "@chakra-ui/react";
 
 const HomePage: React.FC = () => {
   const [message, setMessage] = useState<string>("");
@@ -23,16 +23,23 @@ const HomePage: React.FC = () => {
     return () => clearTimeout(timer);
   }, [location.state]);
 
-  return (
-    <>
-      <Header />
-      <div className="container text-center mt-5">
-        <h1 style={{ color: "#463f3a" }}>Welcome to MADR App!</h1>
-        <p style={{ color: "#8a817c" }}>This is an introduction to the app.</p>
-        {message && <AlertMessage type="info" message={message} />}
-      </div>
-    </>
-  );
+return (
+  <>
+    <Header />
+    <Box mt={8} justifyContent="center">
+      <Flex
+        maxWidth="1500px"
+        direction="column"
+        alignItems="center"
+        textAlign="center"
+      >
+        <Text textStyle="5xl">Welcome to MADR App!</Text>
+      </Flex>
+    </Box>
+
+    {message && <AlertMessage type="info" message={message} />}
+  </>
+);
 };
 
 export default HomePage;

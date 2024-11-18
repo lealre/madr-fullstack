@@ -101,7 +101,9 @@ const Dashboard: React.FC = () => {
           </Flex>
 
           {tab.value === "authors" ? (
-            <AuthorsTable authors={authors} />
+            <AuthorsTable authors={authors} fetchAuthors={
+              fetchAuthors
+            } />
           ) : (
             <BooksTable books={books} />
           )}

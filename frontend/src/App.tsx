@@ -1,10 +1,14 @@
+import { Provider } from "./components/ui/provider";
 import AppRouter from "./routes/AppRouter";
+
 
 function App() {
   return (
-    <div>
-      <AppRouter />
-    </div>
+    <>
+      <Provider >
+        <AppRouter />
+      </Provider>
+    </>
   );
 }
 

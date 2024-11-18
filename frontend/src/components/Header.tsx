@@ -17,16 +17,17 @@ const Header: React.FC = () => {
       <Flex
         justify="space-between"
         align="center"
-        maxWidth="1200px"
+        maxWidth="1400px"
         mx="auto"
         px={4}
       >
-        <Heading size="lg" color="white" margin={0}>
+        <Heading size="3xl" color="white" margin={0}>
           <Link
             href="/"
             style={{ textDecoration: "none" }}
             variant="plain"
             color="white"
+            fontSize="xll"
             _hover={{ color: "gray.200" }}
           >
             MADR
