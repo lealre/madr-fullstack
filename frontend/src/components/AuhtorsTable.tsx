@@ -1,4 +1,4 @@
-import { Button, Flex, Input, Stack, Table } from "@chakra-ui/react";
+import { Button, Center, Flex, HStack, Input, Stack, Table } from "@chakra-ui/react";
 import { InputGroup } from "./ui/input-group";
 import { LuSearch } from "react-icons/lu";
 import { GrAdd } from "react-icons/gr";
@@ -14,6 +14,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  ActionBarContent,
+  ActionBarRoot,
+  ActionBarSelectionTrigger,
+  ActionBarSeparator,
+} from "@/components/ui/action-bar";
+import {
+  PaginationItems,
+  PaginationNextTrigger,
+  PaginationPrevTrigger,
+  PaginationRoot,
+} from "@/components/ui/pagination";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useForm } from "react-hook-form";
 import api from "../api";
 import axios from "axios";
@@ -43,6 +56,10 @@ const AuthorsTable: React.FC<
   } = useForm<AuthorFormProps>();
   const [error, setError] = useState<string>();
 
+  const [selection, setSelection] = useState<number[]>([]);
+  const hasSelection = selection.length > 0;
+  const indeterminate = hasSelection && selection.length < authors.length;
+
   const handleAddAuthor = handleSubmit(async (data) => {
     const token = localStorage.getItem("token");
     try {
@@ -51,7 +68,7 @@ const AuthorsTable: React.FC<
           Authorization: `Bearer ${token}`,
         },
       });
-      fetchAuthors(); // Refresh the authors list
+      fetchAuthors();
       reset();
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -138,31 +155,107 @@ const AuthorsTable: React.FC<
         </DialogRoot>
       </Flex>
 
-      {/* Table */}
-      <Table.Root key="outline" size="md" variant="outline" borderRadius="8px">
-        <Table.Header bg="teal.500">
-          <Table.Row>
-            <Table.ColumnHeader>ID</Table.ColumnHeader>
-            <Table.ColumnHeader textAlign="end">Author</Table.ColumnHeader>
-          </Table.Row>
-        </Table.Header>
-        <Table.Body>
-          {authors.length > 0 ? (
-            authors.map((item) => (
-              <Table.Row key={item.id}>
-                <Table.Cell>{item.id}</Table.Cell>
-                <Table.Cell textAlign="end">{item.name}</Table.Cell>
-              </Table.Row>
-            ))
-          ) : (
+      <Flex direction="column" gap={3}>
+        {/* Table */}
+        <Table.Root
+          key="outline"
+          // size="md"
+          variant="outline"
+          borderRadius="8px"
+        >
+          <Table.Header bg="teal.500">
             <Table.Row>
-              <Table.Cell colSpan={2} textAlign="center">
-                No authors available
-              </Table.Cell>
+              <Table.ColumnHeader>
+                <Checkbox
+                  top="1"
+                  _hover={{ cursor: "pointer" }}
+                  aria-label="Select all rows"
+                  checked={
+                    indeterminate ? "indeterminate" : selection.length > 0
+                  }
+                  onCheckedChange={(changes) => {
+                    setSelection(
+                      changes.checked ? authors.map((item) => item.id) : []
+                    );
+                  }}
+                />
+              </Table.ColumnHeader>
+              <Table.ColumnHeader>ID</Table.ColumnHeader>
+              <Table.ColumnHeader textAlign="end">Author</Table.ColumnHeader>
             </Table.Row>
-          )}
-        </Table.Body>
-      </Table.Root>
+          </Table.Header>
+          <Table.Body>
+            {authors.length > 0 ? (
+              authors.map((item) => (
+                <Table.Row
+                  key={item.id}
+                  data-selected={selection.includes(item.id) ? "" : undefined}
+                  bg={selection.includes(item.id) ? "teal.100" : "white"}
+                >
+                  <Table.Cell>
+                    <Checkbox
+                      variant="solid"
+                      colorPalette="teal"
+                      top="1"
+                      _hover={{ cursor: "pointer" }}
+                      aria-label="Select row"
+                      checked={selection.includes(item.id)}
+                      onCheckedChange={(changes) => {
+                        setSelection((prev) =>
+                          changes.checked
+                            ? [...prev, item.id]
+                            : selection.filter((id) => id !== item.id)
+                        );
+                      }}
+                    />
+                  </Table.Cell>
+                  <Table.Cell>{item.id}</Table.Cell>
+                  <Table.Cell textAlign="end">{item.name}</Table.Cell>
+                </Table.Row>
+              ))
+            ) : (
+              <Table.Row>
+                <Table.Cell colSpan={2} textAlign="center">
+                  No authors available
+                </Table.Cell>
+              </Table.Row>
+            )}
+          </Table.Body>
+        </Table.Root>
+
+        <Center>
+          <PaginationRoot
+            count={5}
+            pageSize={2}
+            defaultPage={1}
+            size="sm"
+            color="teal.600"
+            // _hover={{bg="teal.200"}}
+          >
+            <HStack>
+              <PaginationPrevTrigger color="black" />
+              <PaginationItems color="black" />
+              <PaginationNextTrigger color="black" />
+            </HStack>
+          </PaginationRoot>
+        </Center>
+      </Flex>
+      <ActionBarRoot open={hasSelection}>
+        <ActionBarContent bg="teal.50" borderWidth="1px">
+          <ActionBarSelectionTrigger>
+            {selection.length} selected
+          </ActionBarSelectionTrigger>
+          <ActionBarSeparator />
+          <Button
+            size="sm"
+            colorPalette="red"
+            _hover={{ background: "red.400" }}
+          >
+            Delete
+          </Button>
+        </ActionBarContent>
+      </ActionBarRoot>
+
       {error && <AlertMessage type="error" message={error} />}
     </>
   );

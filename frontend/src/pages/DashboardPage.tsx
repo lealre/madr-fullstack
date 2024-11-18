@@ -49,7 +49,7 @@ const Dashboard: React.FC = () => {
     <>
       <Header />
 
-      <Container maxW="800px" mx="auto">
+      <Container maxW="1000px" mx="auto">
         <Flex mt={1} align="center">
           <FaUserAlt size={20} style={{ marginRight: "8px" }} />
           <Text fontSize="lg" alignItems="center">
