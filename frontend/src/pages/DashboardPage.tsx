@@ -6,7 +6,10 @@ import { IoBookSharp } from "react-icons/io5";
 import { FaUserAlt } from "react-icons/fa";
 import api from "../api";
 import Header from "../components/Header";
-import AuthorsTable, { AuthorsTableProps } from "../components/AuhtorsTable";
+import AuthorsTable, {
+  AuthorsTableProps,
+  PageProps,
+} from "../components/AuhtorsTable";
 import BooksTable, { BooksTableProps } from "../components/BooksTable";
 
 interface TabProps {
@@ -18,16 +21,39 @@ const Dashboard: React.FC = () => {
   const [books, setBooks] = useState<BooksTableProps["books"]>([]);
   const [tab, setTab] = useState<TabProps>({ value: "authors" });
 
-  useEffect(() => {
-    fetchAuthors();
-  }, []);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const pageSize = 8;
 
-  const fetchAuthors = async (): Promise<void> => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const pageProps: PageProps = {
+    totalPages: totalPages,
+    pageSize: pageSize,
+    currentPage: currentPage,
+    setCurrentPage: setCurrentPage,
+  };
+
+  useEffect(() => {
+    console.log("Fetching authors for page:", currentPage);
+    fetchAuthors(currentPage);
+  }, [currentPage]);
+
+  const fetchAuthors = async (page: number): Promise<void> => {
+    if (isLoading) return;
+    setIsLoading(true);
+    const offset = (page - 1) * pageSize;
+
     try {
-      const response = await api.get("/author/");
+      const response = await api.get(
+        `/author/?limit=${pageSize}&offset=${offset}`
+      );
       setAuthors(response.data.authors);
+      setTotalPages(response.data.total_results);
     } catch (err) {
       console.log(err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -42,7 +68,7 @@ const Dashboard: React.FC = () => {
 
   const changeTabView = (e: any) => {
     setTab(e);
-    e.value === "authors" ? fetchAuthors() : fetchBooks();
+    e.value === "authors" ? fetchAuthors(currentPage) : fetchBooks();
   };
 
   return (
@@ -101,9 +127,11 @@ const Dashboard: React.FC = () => {
           </Flex>
 
           {tab.value === "authors" ? (
-            <AuthorsTable authors={authors} fetchAuthors={
-              fetchAuthors
-            } />
+            <AuthorsTable
+              authors={authors}
+              fetchAuthors={fetchAuthors}
+              pageProps={pageProps}
+            />
           ) : (
             <BooksTable books={books} />
           )}

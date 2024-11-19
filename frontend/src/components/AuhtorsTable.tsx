@@ -1,4 +1,12 @@
-import { Button, Center, Flex, HStack, Input, Stack, Table } from "@chakra-ui/react";
+import {
+  Button,
+  Center,
+  Flex,
+  HStack,
+  Input,
+  Stack,
+  Table,
+} from "@chakra-ui/react";
 import { InputGroup } from "./ui/input-group";
 import { LuSearch } from "react-icons/lu";
 import { GrAdd } from "react-icons/gr";
@@ -41,13 +49,28 @@ export interface AuthorsTableProps {
   authors: AuthorsProps[];
 }
 
+export interface PageProps {
+  totalPages: number;
+  pageSize: number;
+  currentPage: number;
+  setCurrentPage: (newPage: number) => void;
+}
+
+export interface ExtendedAuthorsTableProps extends AuthorsTableProps {
+  fetchAuthors: (page: number) => void;
+  pageProps: PageProps
+}
+
+
 interface AuthorFormProps {
   name: string;
 }
 
-const AuthorsTable: React.FC<
-  AuthorsTableProps & { fetchAuthors: () => void }
-> = ({ authors, fetchAuthors }) => {
+const AuthorsTable: React.FC<ExtendedAuthorsTableProps> = ({
+  authors,
+  fetchAuthors,
+  pageProps
+}) => {
   const {
     register,
     handleSubmit,
@@ -56,10 +79,14 @@ const AuthorsTable: React.FC<
   } = useForm<AuthorFormProps>();
   const [error, setError] = useState<string>();
 
+  const { totalPages, pageSize, currentPage, setCurrentPage } = pageProps;
+
   const [selection, setSelection] = useState<number[]>([]);
   const hasSelection = selection.length > 0;
   const indeterminate = hasSelection && selection.length < authors.length;
 
+  console.log("Total pages: ", totalPages);
+  console.log("paze size: ", pageSize);
   const handleAddAuthor = handleSubmit(async (data) => {
     const token = localStorage.getItem("token");
     try {
@@ -68,7 +95,7 @@ const AuthorsTable: React.FC<
           Authorization: `Bearer ${token}`,
         },
       });
-      fetchAuthors();
+      fetchAuthors(currentPage);
       reset();
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -156,7 +183,6 @@ const AuthorsTable: React.FC<
       </Flex>
 
       <Flex direction="column" gap={3}>
-        {/* Table */}
         <Table.Root
           key="outline"
           // size="md"
@@ -225,12 +251,16 @@ const AuthorsTable: React.FC<
 
         <Center>
           <PaginationRoot
-            count={5}
-            pageSize={2}
+            count={totalPages}
+            pageSize={pageSize}
             defaultPage={1}
+            page={currentPage}
+            onPageChange={(e) => {
+              console.log(e.page);
+              setCurrentPage(e.page);
+            }}
             size="sm"
             color="teal.600"
-            // _hover={{bg="teal.200"}}
           >
             <HStack>
               <PaginationPrevTrigger color="black" />

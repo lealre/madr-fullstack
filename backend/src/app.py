@@ -1,7 +1,7 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from src.routers import auth, author, books, users
-from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
@@ -19,6 +19,7 @@ app.add_middleware(
     allow_methods=['*'],
     allow_headers=['*'],
 )
+
 
 @app.get('/')
 def home_root():

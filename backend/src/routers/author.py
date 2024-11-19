@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 from fastapi import APIRouter
 from fastapi.exceptions import HTTPException
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from src.database import T_Session
 from src.models import Author
@@ -91,12 +91,18 @@ def get_author_with_name_like(
     limit: int = 20,
     offset: int = 0,
 ):
+
     if not name:
-        authors_list = session.scalars( select(Author))
-        return {'authors': authors_list}
+        total_results = session.query(Author).count()
+        authors_list = session.scalars(
+            select(Author).limit(limit).offset(offset)
+        )
+        return {'authors': authors_list, 'total_results': total_results}
 
     query = select(Author).filter(Author.name.contains(name))
+    
+    total_results = session.scalar(select(func.count()).select_from(query.subquery()))
 
     authors_list = session.scalars(query.limit(limit).offset(offset)).all()
 
-    return {'authors': authors_list}
+    return {'authors': authors_list, 'total_results': total_results}
