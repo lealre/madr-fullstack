@@ -9,7 +9,7 @@ from src.models import User
 from src.schemas.users import UserSchema
 
 
-async def register_new_user_in_db(session: AsyncSession, user: User):
+async def register_new_user_in_db(session: AsyncSession, user: UserSchema):
     user_db = await session.scalar(
         select(User).where(
             (User.username == user.username) | (User.email == user.email)
@@ -70,11 +70,5 @@ async def delete_user_in_db(
             status_code=HTTPStatus.FORBIDDEN, detail='Not enough permissions.'
         )
 
-    try:
-        await session.delete(current_user)
-        await session.commit()
-    except Exception:
-        raise HTTPException(
-            status_code=HTTPStatus.SERVICE_UNAVAILABLE,
-            detail='Service is currently unavailable.',
-        )
+    await session.delete(current_user)
+    await session.commit()
