@@ -3,11 +3,11 @@ from http import HTTPStatus
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 
-from src.database import T_Session
+from src.core.database import T_Session
+from src.core.security import CurrentUser
 from src.models import Author, Book
 from src.schemas.base import Message
 from src.schemas.books import BookList, BookPublic, BookSchema, BookUpdate
-from src.security import CurrentUser
 
 router = APIRouter(prefix='/book', tags=['book'])
 

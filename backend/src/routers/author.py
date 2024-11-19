@@ -4,11 +4,11 @@ from fastapi import APIRouter
 from fastapi.exceptions import HTTPException
 from sqlalchemy import func, select
 
-from src.database import T_Session
+from src.core.database import T_Session
+from src.core.security import CurrentUser
 from src.models import Author
 from src.schemas.authors import AuthorList, AuthorPublic, AuthorSchema
 from src.schemas.base import Message
-from src.security import CurrentUser
 
 router = APIRouter(prefix='/author', tags=['author'])
 
@@ -91,7 +91,6 @@ def get_author_with_name_like(
     limit: int = 20,
     offset: int = 0,
 ):
-
     if not name:
         total_results = session.query(Author).count()
         authors_list = session.scalars(
@@ -100,8 +99,10 @@ def get_author_with_name_like(
         return {'authors': authors_list, 'total_results': total_results}
 
     query = select(Author).filter(Author.name.contains(name))
-    
-    total_results = session.scalar(select(func.count()).select_from(query.subquery()))
+
+    total_results = session.scalar(
+        select(func.count()).select_from(query.subquery())
+    )
 
     authors_list = session.scalars(query.limit(limit).offset(offset)).all()
 

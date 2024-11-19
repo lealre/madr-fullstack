@@ -9,9 +9,9 @@ from pwdlib import PasswordHash
 from sqlalchemy import select
 from zoneinfo import ZoneInfo
 
-from src.database import T_Session
+from src.core.database import T_Session
+from src.core.settings import Settings
 from src.models import User
-from src.settings import Settings
 
 pwd_context = PasswordHash.recommended()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/token')
@@ -40,7 +40,9 @@ def create_access_token(data: dict):
     return encoded_jwt
 
 
-def get_current_user(session: T_Session, token: str = Depends(oauth2_scheme)):
+async def get_current_user(
+    session: T_Session, token: str = Depends(oauth2_scheme)
+):
     credentials_exception = HTTPException(
         status_code=HTTPStatus.UNAUTHORIZED,
         detail='Could not validate credentials.',
@@ -59,7 +61,7 @@ def get_current_user(session: T_Session, token: str = Depends(oauth2_scheme)):
     except PyJWTError:
         raise credentials_exception
 
-    user_db = session.scalar(select(User).where(User.email == username))
+    user_db = await session.scalar(select(User).where(User.email == username))
 
     if not user_db:
         raise credentials_exception

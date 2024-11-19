@@ -1,42 +1,27 @@
-from http import HTTPStatus
-
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy import select
 
-from src.database import T_Session
-from src.models import User
+from src.core.database import T_Session
+from src.core.security import CurrentUser
 from src.schemas.token import Token
-from src.security import create_access_token, get_current_user, verify_password
+from src.services.auth_service import generate_access_token, refresh_token
 
 router = APIRouter(prefix='/auth', tags=['auth'])
 
 
 @router.post('/token', response_model=Token)
-def login_for_access_token(
+async def login_for_access_token(
     session: T_Session, form_data: OAuth2PasswordRequestForm = Depends()
 ):
-    user = session.scalar(select(User).where(User.email == form_data.username))
-
-    if not user:
-        raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST,
-            detail='Incorrect email or password.',
-        )
-
-    if not verify_password(form_data.password, user.password):
-        raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST,
-            detail='Incorrect email or password.',
-        )
-
-    access_token = create_access_token(data={'sub': user.email})
+    access_token = await generate_access_token(
+        session=session, form_data=form_data
+    )
 
     return {'access_token': access_token, 'token_type': 'bearer'}
 
 
 @router.post('/refresh_token', response_model=Token)
-def refresh_access_token(user: User = Depends(get_current_user)):
-    new_access_token = create_access_token(data={'sub': user.email})
+def refresh_access_token(user: CurrentUser):
+    new_access_token = refresh_token(user=user)
 
     return {'access_token': new_access_token, 'token_type': 'bearer'}

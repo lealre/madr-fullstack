@@ -4,8 +4,8 @@ import pytest
 from fastapi import HTTPException
 from jwt import decode
 
-from src.database import T_Session
-from src.security import create_access_token, get_current_user, settings
+from src.core.database import T_Session
+from src.core.security import create_access_token, get_current_user, settings
 
 
 def test_jwt():

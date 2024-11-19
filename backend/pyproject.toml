@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "madr-fastapi"
+name = "madr-backend"
 version = "0.1.0"
 description = ""
 authors = ["lealre <renaanvp@gmail.com>"]
@@ -18,6 +18,7 @@ psycopg = {extras = ["binary"], version = "^3.2.1"}
 pyjwt = "^2.9.0"
 pwdlib = {extras = ["argon2"], version = "^0.2.0"}
 python-multipart = "^0.0.9"
+aiosqlite = "^0.20.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"
