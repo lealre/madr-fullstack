@@ -17,7 +17,7 @@ AsyncSessionLocal = sessionmaker(
 )
 
 
-async def get_session():
+async def get_session():  # pragma: no cover
     async with AsyncSessionLocal() as session:
         yield session
 

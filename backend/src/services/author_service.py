@@ -31,7 +31,9 @@ async def register_new_author_in_db(
 
 
 async def delete_author_from_db(session: AsyncSession, author_id: int):
-    author_db = await session.scalar(select(Author).where(Author.id == author_id))
+    author_db = await session.scalar(
+        select(Author).where(Author.id == author_id)
+    )
 
     if not author_db:
         raise HTTPException(
@@ -87,7 +89,6 @@ async def query_paginated_authors_from_db(
 ):
     if not name:
         total_results = await session.scalar(select(func.count(Author.id)))
-        # breakpoint()
         authors_list = await session.scalars(
             select(Author).limit(limit).offset(offset)
         )
@@ -99,6 +100,6 @@ async def query_paginated_authors_from_db(
         select(func.count()).select_from(query.subquery())
     )
 
-    authors_list = session.scalars(query.limit(limit).offset(offset)).all()
+    authors_list = await session.scalars(query.limit(limit).offset(offset))
 
     return authors_list, total_results

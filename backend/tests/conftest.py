@@ -1,9 +1,9 @@
 import factory
 import factory.fuzzy
-import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
+import pytest_asyncio
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
 from testcontainers.postgres import PostgresContainer
 
 from src.app import app
@@ -25,7 +25,7 @@ class BookFactory(factory.Factory):
     class Meta:
         model = Book
 
-    year = factory.fuzzy.FuzzyInteger(1, 2000)
+    year = factory.fuzzy.FuzzyInteger(1700, 2000)
     title = factory.Sequence(lambda n: f'book_{n}')
     author_id = 1
 
@@ -37,90 +37,104 @@ class AuthorFactory(factory.Factory):
     name = factory.Sequence(lambda n: f'author_{n}')
 
 
-@pytest.fixture(scope='session')
-def engine():
-    with PostgresContainer('postgres:16', driver='psycopg') as postgres:
-        _engine = create_engine(postgres.get_connection_url())
-
-        with _engine.begin():
-            yield _engine
+@pytest_asyncio.fixture(scope='session')
+def postgres_container():
+    with PostgresContainer('postgres:16', driver='asyncpg') as postgres:
+        yield postgres
 
 
-@pytest.fixture
-def session(engine):
-    table_registry.metadata.create_all(engine)
-
-    with Session(engine) as session:
-        yield session
-        session.rollback()
-
-    table_registry.metadata.drop_all(engine)
+BASE_URL = 'http://test'
 
 
-@pytest.fixture
-def client(session):
-    def get_session_override():
-        return session
+@pytest_asyncio.fixture
+async def async_session(postgres_container):
+    async_db_url = postgres_container.get_connection_url().replace(
+        'postgresql://', 'postgresql+asyncpg://'
+    )
+    async_engine = create_async_engine(
+        async_db_url, pool_pre_ping=True, echo=True
+    )
 
-    with TestClient(app) as client:
-        app.dependency_overrides[get_session] = get_session_override
+    async with async_engine.begin() as conn:
+        await conn.run_sync(table_registry.metadata.drop_all)
+        await conn.run_sync(table_registry.metadata.create_all)
+
+    async_session = sessionmaker(
+        autoflush=False,
+        bind=async_engine,
+        class_=AsyncSession,
+        expire_on_commit=False,
+    )
+
+    async with async_session() as as_session:
+        yield as_session
+
+
+@pytest_asyncio.fixture
+async def async_client(async_session):
+    app.dependency_overrides[get_session] = lambda: async_session
+    _transport = ASGITransport(app=app)
+
+    async with AsyncClient(
+        transport=_transport, base_url=BASE_URL, follow_redirects=True
+    ) as client:
         yield client
 
     app.dependency_overrides.clear()
 
 
-@pytest.fixture
-def token(client, user):
-    response = client.post(
+@pytest_asyncio.fixture
+async def token(async_client, user):
+    response = await async_client.post(
         '/auth/token',
         data={'username': user.email, 'password': user.clean_password},
     )
     return response.json()['access_token']
 
 
-@pytest.fixture
-def user(session):
+@pytest_asyncio.fixture
+async def user(async_session):
     pwd = 'testest'
 
     user = UserFactory(password=get_password_hash(pwd))
 
-    session.add(user)
-    session.commit()
-    session.refresh(user)
+    async_session.add(user)
+    await async_session.commit()
+    await async_session.refresh(user)
 
     user.clean_password = pwd  # Monkey Patch
 
     return user
 
 
-@pytest.fixture
-def other_user(session):
+@pytest_asyncio.fixture
+async def other_user(async_session):
     user = UserFactory()
 
-    session.add(user)
-    session.commit()
-    session.refresh(user)
+    async_session.add(user)
+    await async_session.commit()
+    await async_session.refresh(user)
 
     return user
 
 
-@pytest.fixture
-def author(session):
+@pytest_asyncio.fixture
+async def author(async_session):
     author = AuthorFactory()
 
-    session.add(author)
-    session.commit()
-    session.refresh(author)
+    async_session.add(author)
+    await async_session.commit()
+    await async_session.refresh(author)
 
     return author
 
 
-@pytest.fixture
-def book(session, author):
+@pytest_asyncio.fixture
+async def book(async_session, author):
     book = BookFactory()
 
-    session.add(book)
-    session.commit()
-    session.refresh(book)
+    async_session.add(book)
+    await async_session.commit()
+    await async_session.refresh(book)
 
     return book

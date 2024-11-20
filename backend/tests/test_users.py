@@ -1,8 +1,8 @@
 from http import HTTPStatus
 
 
-def test_create_user(client):
-    response = client.post(
+async def test_create_user(async_client):
+    response = await async_client.post(
         '/users/',
         json={
             'username': 'testname',
@@ -19,8 +19,8 @@ def test_create_user(client):
     }
 
 
-def test_create_user_with_duplicated_username(client, user):
-    response = client.post(
+async def test_create_user_with_duplicated_username(async_client, user):
+    response = await async_client.post(
         '/users/',
         json={
             'username': user.username,
@@ -33,8 +33,8 @@ def test_create_user_with_duplicated_username(client, user):
     assert response.json() == {'detail': 'Username already exists.'}
 
 
-def test_create_user_with_duplicated_email(client, user):
-    response = client.post(
+async def test_create_user_with_duplicated_email(async_client, user):
+    response = await async_client.post(
         '/users/',
         json={
             'username': 'different_username',
@@ -47,8 +47,8 @@ def test_create_user_with_duplicated_email(client, user):
     assert response.json() == {'detail': 'Email already exists.'}
 
 
-def test_update_user(client, user, token):
-    response = client.put(
+async def test_update_user(async_client, user, token):
+    response = await async_client.put(
         f'/users/{user.id}',
         headers={'Authorization': f'Bearer {token}'},
         json={
@@ -66,8 +66,10 @@ def test_update_user(client, user, token):
     }
 
 
-def test_update_user_not_enough_permissions(client, user, token, other_user):
-    response = client.put(
+async def test_update_user_not_enough_permissions(
+    async_client, user, token, other_user
+):
+    response = await async_client.put(
         f'/users/{other_user.id}',
         headers={'Authorization': f'Bearer {token}'},
         json={
@@ -81,8 +83,8 @@ def test_update_user_not_enough_permissions(client, user, token, other_user):
     assert response.json() == {'detail': 'Not enough permissions.'}
 
 
-def test_delete_user(client, user, token):
-    response = client.delete(
+async def test_delete_user(async_client, user, token):
+    response = await async_client.delete(
         f'/users/{user.id}',
         headers={'Authorization': f'Bearer {token}'},
     )
@@ -91,8 +93,10 @@ def test_delete_user(client, user, token):
     assert response.json() == {'message': 'User Deleted.'}
 
 
-def test_delete_user_not_enough_permissions(client, user, token, other_user):
-    response = client.delete(
+async def test_delete_user_not_enough_permissions(
+    async_client, user, token, other_user
+):
+    response = await async_client.delete(
         f'/users/{other_user.id}',
         headers={'Authorization': f'Bearer {token}'},
     )

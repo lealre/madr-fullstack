@@ -1,36 +1,43 @@
 [tool.poetry]
-name = "madr-backend"
-version = "0.1.0"
-description = ""
-authors = ["lealre <renaanvp@gmail.com>"]
-readme = "README.md"
-packages = [{include = "src"}]
+name = 'madr-backend'
+version = '0.1.0'
+description = ''
+authors = ['lealre <renaanvp@gmail.com>']
+readme = 'README.md'
+packages = [{include = 'src'}]
 
 [tool.poetry.dependencies]
-python = "3.12.*"
-fastapi = {extras = ["standard"], version = "^0.112.0"}
-sqlalchemy = "^2.0.31"
-alembic = "^1.13.2"
-email-validator = "^2.2.0"
-pydantic-settings = "^2.4.0"
-ruff = "^0.5.6"
-psycopg = {extras = ["binary"], version = "^3.2.1"}
-pyjwt = "^2.9.0"
-pwdlib = {extras = ["argon2"], version = "^0.2.0"}
-python-multipart = "^0.0.9"
-aiosqlite = "^0.20.0"
+python = '3.12.*'
+fastapi = {extras = ['standard'], version = '^0.112.0'}
+sqlalchemy = '^2.0.31'
+alembic = '^1.13.2'
+email-validator = '^2.2.0'
+pydantic-settings = '^2.4.0'
+ruff = '^0.5.6'
+psycopg = {extras = ['binary'], version = '^3.2.1'}
+pyjwt = '^2.9.0'
+pwdlib = {extras = ['argon2'], version = '^0.2.0'}
+python-multipart = '^0.0.9'
+aiosqlite = '^0.20.0'
+asyncpg = '^0.30.0'
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.3.2"
-taskipy = "^1.13.0"
-pytest-cov = "^5.0.0"
-factory-boy = "^3.3.0"
-freezegun = "^1.5.1"
-testcontainers = "^4.7.2"
+pytest = '^8.3.2'
+taskipy = '^1.13.0'
+pytest-cov = '^5.0.0'
+factory-boy = '^3.3.0'
+freezegun = '^1.5.1'
+testcontainers = '^4.7.2'
+pytest-asyncio = '^0.24.0'
+gevent = "^24.11.1"
 
 [tool.pytest.ini_options]
-pythonpath = "."
+pythonpath = '.'
 addopts = '-p no:warnings'
+asyncio_mode = 'auto'
+
+[tool.coverage.run]
+concurrency = ["gevent"]
 
 [tool.ruff]
 line-length = 79
@@ -53,5 +60,5 @@ lint = 'ruff check . && ruff check . --diff'
 format = 'ruff check . --fix && ruff format .'
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ['poetry-core']
+build-backend = 'poetry.core.masonry.api'

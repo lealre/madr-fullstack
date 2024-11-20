@@ -3,8 +3,8 @@ from http import HTTPStatus
 from freezegun import freeze_time
 
 
-def test_get_token(client, user):
-    response = client.post(
+async def test_get_token(async_client, user):
+    response = await async_client.post(
         '/auth/token',
         data={'username': user.email, 'password': user.clean_password},
     )
@@ -16,8 +16,8 @@ def test_get_token(client, user):
     assert 'token_type' in token
 
 
-def test_token_wrong_user(client, user):
-    response = client.post(
+async def test_token_wrong_user(async_client, user):
+    response = await async_client.post(
         '/auth/token',
         data={
             'username': 'no_user@no_domain.com',
@@ -28,8 +28,8 @@ def test_token_wrong_user(client, user):
     assert response.json() == {'detail': 'Incorrect email or password.'}
 
 
-def test_token_wrong_password(client, user):
-    response = client.post(
+async def test_token_wrong_password(async_client, user):
+    response = await async_client.post(
         '/auth/token',
         data={'username': user.email, 'password': 'wrong_password'},
     )
@@ -37,9 +37,9 @@ def test_token_wrong_password(client, user):
     assert response.json() == {'detail': 'Incorrect email or password.'}
 
 
-def test_token_expired_after_time(client, user):
+async def test_token_expired_after_time(async_client, user):
     with freeze_time('2024-01-01 12:00:00'):
-        response = client.post(
+        response = await async_client.post(
             '/auth/token',
             data={'username': user.email, 'password': user.clean_password},
         )
@@ -48,7 +48,7 @@ def test_token_expired_after_time(client, user):
         token = response.json()['access_token']
 
     with freeze_time('2024-01-01 13:01:00'):
-        response = client.put(
+        response = await async_client.put(
             f'/users/{user.id}',
             headers={'Authorization': f'Bearer {token}'},
             json={
@@ -62,8 +62,8 @@ def test_token_expired_after_time(client, user):
         assert response.json() == {'detail': 'Could not validate credentials.'}
 
 
-def test_refresh_token(client, token, user):
-    response = client.post(
+async def test_refresh_token(async_client, token, user):
+    response = await async_client.post(
         '/auth/refresh_token', headers={'Authorization': f'Bearer {token}'}
     )
 
@@ -74,9 +74,9 @@ def test_refresh_token(client, token, user):
     assert 'token_type' in data
 
 
-def test_token_expired_dont_refresh(client, user):
+async def test_token_expired_dont_refresh(async_client, user):
     with freeze_time('2024-01-01 12:00:00'):
-        response = client.post(
+        response = await async_client.post(
             '/auth/token',
             data={'username': user.email, 'password': user.clean_password},
         )
@@ -85,7 +85,7 @@ def test_token_expired_dont_refresh(client, user):
         token = response.json()['access_token']
 
     with freeze_time('2024-01-01 13:01:00'):
-        response = client.post(
+        response = await async_client.post(
             '/auth/refresh_token', headers={'Authorization': f'Bearer {token}'}
         )
 
@@ -93,15 +93,15 @@ def test_token_expired_dont_refresh(client, user):
         assert response.json() == {'detail': 'Could not validate credentials.'}
 
 
-def test_user_not_found_get_current_user(client, user, token):
-    response = client.delete(
+async def test_user_not_found_get_current_user(async_client, user, token):
+    response = await async_client.delete(
         f'/users/{user.id}', headers={'Authorization': f'Bearer {token}'}
     )
 
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {'message': 'User Deleted.'}
 
-    response = client.post(
+    response = await async_client.post(
         '/auth/refresh_token', headers={'Authorization': f'Bearer {token}'}
     )
 
