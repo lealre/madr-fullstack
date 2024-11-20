@@ -123,16 +123,20 @@ export const PaginationPrevTrigger = React.forwardRef<
       >
         <HiChevronLeft />
       </LinkButton>
-    )
+    );
   }
 
   return (
     <ChakraPagination.PrevTrigger ref={ref} asChild {...props}>
-      <IconButton variant={variantMap.default} size={size}>
+      <IconButton
+        variant={variantMap.default}
+        size={size}
+        _hover={{ backgroundColor: "teal.400" }}
+      >
         <HiChevronLeft />
       </IconButton>
     </ChakraPagination.PrevTrigger>
-  )
+  );
 })
 
 export const PaginationNextTrigger = React.forwardRef<
@@ -156,11 +160,15 @@ export const PaginationNextTrigger = React.forwardRef<
 
   return (
     <ChakraPagination.NextTrigger ref={ref} asChild {...props}>
-      <IconButton variant={variantMap.default} size={size}>
+      <IconButton
+        variant={variantMap.default}
+        size={size}
+        _hover={{ backgroundColor: "teal.400" }}
+      >
         <HiChevronRight />
       </IconButton>
     </ChakraPagination.NextTrigger>
-  )
+  );
 })
 
 export const PaginationItems = (props: React.HTMLAttributes<HTMLElement>) => {
@@ -172,6 +180,7 @@ export const PaginationItems = (props: React.HTMLAttributes<HTMLElement>) => {
             <PaginationEllipsis key={index} index={index} {...props} />
           ) : (
             <PaginationItem
+              _hover={{backgroundColor: "teal.400"}}
               key={index}
               type="page"
               value={page.value}

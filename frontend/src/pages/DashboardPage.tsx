@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Text, Box, Flex, Container } from "@chakra-ui/react";
+import { Text, Box, Flex, Container, Center } from "@chakra-ui/react";
 import { Tabs } from "@chakra-ui/react";
 import { LuUser } from "react-icons/lu";
 import { IoBookSharp } from "react-icons/io5";
@@ -7,9 +7,9 @@ import { FaUserAlt } from "react-icons/fa";
 import api from "../api";
 import Header from "../components/Header";
 import AuthorsTable, {
-  AuthorsTableProps,
-  PageProps,
+  AuthorsTableProps 
 } from "../components/AuhtorsTable";
+import Pagination, {PageProps} from "../components/Pagination"
 import BooksTable, { BooksTableProps } from "../components/BooksTable";
 
 interface TabProps {
@@ -22,20 +22,19 @@ const Dashboard: React.FC = () => {
   const [tab, setTab] = useState<TabProps>({ value: "authors" });
 
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [totalPages, setTotalPages] = useState<number>(1);
+  const [totalResults, setTotalResults] = useState<number>(1);
   const pageSize = 8;
 
   const [isLoading, setIsLoading] = useState(false);
 
   const pageProps: PageProps = {
-    totalPages: totalPages,
+    totalResults: totalResults,
     pageSize: pageSize,
     currentPage: currentPage,
     setCurrentPage: setCurrentPage,
   };
 
   useEffect(() => {
-    console.log("Fetching authors for page:", currentPage);
     fetchAuthors(currentPage);
   }, [currentPage]);
 
@@ -49,7 +48,7 @@ const Dashboard: React.FC = () => {
         `/author/?limit=${pageSize}&offset=${offset}`
       );
       setAuthors(response.data.authors);
-      setTotalPages(response.data.total_results);
+      setTotalResults(response.data.total_results);
     } catch (err) {
       console.log(err);
     } finally {
@@ -84,7 +83,6 @@ const Dashboard: React.FC = () => {
         </Flex>
 
         <Box mt={8}>
-          {/* Dashboard + Tabs */}
           <Flex borderBottom="1px solid black" mb={3} justify="space-between">
             <Text fontWeight="semibold" fontSize="40px" mb={0}>
               Dashboard Area
@@ -127,11 +125,12 @@ const Dashboard: React.FC = () => {
           </Flex>
 
           {tab.value === "authors" ? (
-            <AuthorsTable
-              authors={authors}
-              fetchAuthors={fetchAuthors}
-              pageProps={pageProps}
-            />
+            <Flex direction="column" gap={3}>
+              <AuthorsTable authors={authors} />
+              <Center>
+                <Pagination {...pageProps}></Pagination>
+              </Center>
+            </Flex>
           ) : (
             <BooksTable books={books} />
           )}

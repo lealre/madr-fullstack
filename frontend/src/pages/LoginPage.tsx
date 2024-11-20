@@ -81,6 +81,7 @@ export default function LoginPage() {
             maxW="sm"
             colorPalette="teal"
             layerStyle="fill.subtle"
+            // backgroundColor="teal.400"
             variant="elevated"
           >
             <Card.Header>

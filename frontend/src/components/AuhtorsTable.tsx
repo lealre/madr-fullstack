@@ -1,8 +1,6 @@
 import {
   Button,
-  Center,
   Flex,
-  HStack,
   Input,
   Stack,
   Table,
@@ -28,12 +26,6 @@ import {
   ActionBarSelectionTrigger,
   ActionBarSeparator,
 } from "@/components/ui/action-bar";
-import {
-  PaginationItems,
-  PaginationNextTrigger,
-  PaginationPrevTrigger,
-  PaginationRoot,
-} from "@/components/ui/pagination";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useForm } from "react-hook-form";
 import api from "../api";
@@ -49,28 +41,11 @@ export interface AuthorsTableProps {
   authors: AuthorsProps[];
 }
 
-export interface PageProps {
-  totalPages: number;
-  pageSize: number;
-  currentPage: number;
-  setCurrentPage: (newPage: number) => void;
-}
-
-export interface ExtendedAuthorsTableProps extends AuthorsTableProps {
-  fetchAuthors: (page: number) => void;
-  pageProps: PageProps
-}
-
-
 interface AuthorFormProps {
   name: string;
 }
 
-const AuthorsTable: React.FC<ExtendedAuthorsTableProps> = ({
-  authors,
-  fetchAuthors,
-  pageProps
-}) => {
+const AuthorsTable: React.FC<AuthorsTableProps> = ({ authors }) => {
   const {
     register,
     handleSubmit,
@@ -79,14 +54,10 @@ const AuthorsTable: React.FC<ExtendedAuthorsTableProps> = ({
   } = useForm<AuthorFormProps>();
   const [error, setError] = useState<string>();
 
-  const { totalPages, pageSize, currentPage, setCurrentPage } = pageProps;
-
   const [selection, setSelection] = useState<number[]>([]);
   const hasSelection = selection.length > 0;
   const indeterminate = hasSelection && selection.length < authors.length;
 
-  console.log("Total pages: ", totalPages);
-  console.log("paze size: ", pageSize);
   const handleAddAuthor = handleSubmit(async (data) => {
     const token = localStorage.getItem("token");
     try {
@@ -95,7 +66,6 @@ const AuthorsTable: React.FC<ExtendedAuthorsTableProps> = ({
           Authorization: `Bearer ${token}`,
         },
       });
-      fetchAuthors(currentPage);
       reset();
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -164,8 +134,8 @@ const AuthorsTable: React.FC<ExtendedAuthorsTableProps> = ({
                       {...register("name", {
                         required: "Name is required",
                         maxLength: {
-                          value: 50, // Maximum number of characters allowed
-                          message: "Name cannot exceed 50 characters", // Custom error message
+                          value: 50,
+                          message: "Name cannot exceed 50 characters",
                         },
                       })}
                     />
@@ -173,7 +143,7 @@ const AuthorsTable: React.FC<ExtendedAuthorsTableProps> = ({
                 </Stack>
               </DialogBody>
               <DialogFooter>
-                <Button>Cancel</Button>
+                <Button onClick={() => reset()}>Cancel</Button>
                 <Button type="submit">Add</Button>
               </DialogFooter>
             </form>
@@ -182,94 +152,69 @@ const AuthorsTable: React.FC<ExtendedAuthorsTableProps> = ({
         </DialogRoot>
       </Flex>
 
-      <Flex direction="column" gap={3}>
-        <Table.Root
-          key="outline"
-          // size="md"
-          variant="outline"
-          borderRadius="8px"
-        >
-          <Table.Header bg="teal.500">
-            <Table.Row>
-              <Table.ColumnHeader>
-                <Checkbox
-                  top="1"
-                  _hover={{ cursor: "pointer" }}
-                  aria-label="Select all rows"
-                  checked={
-                    indeterminate ? "indeterminate" : selection.length > 0
-                  }
-                  onCheckedChange={(changes) => {
-                    setSelection(
-                      changes.checked ? authors.map((item) => item.id) : []
-                    );
-                  }}
-                />
-              </Table.ColumnHeader>
-              <Table.ColumnHeader>ID</Table.ColumnHeader>
-              <Table.ColumnHeader textAlign="end">Author</Table.ColumnHeader>
-            </Table.Row>
-          </Table.Header>
-          <Table.Body>
-            {authors.length > 0 ? (
-              authors.map((item) => (
-                <Table.Row
-                  key={item.id}
-                  data-selected={selection.includes(item.id) ? "" : undefined}
-                  bg={selection.includes(item.id) ? "teal.100" : "white"}
-                >
-                  <Table.Cell>
-                    <Checkbox
-                      variant="solid"
-                      colorPalette="teal"
-                      top="1"
-                      _hover={{ cursor: "pointer" }}
-                      aria-label="Select row"
-                      checked={selection.includes(item.id)}
-                      onCheckedChange={(changes) => {
-                        setSelection((prev) =>
-                          changes.checked
-                            ? [...prev, item.id]
-                            : selection.filter((id) => id !== item.id)
-                        );
-                      }}
-                    />
-                  </Table.Cell>
-                  <Table.Cell>{item.id}</Table.Cell>
-                  <Table.Cell textAlign="end">{item.name}</Table.Cell>
-                </Table.Row>
-              ))
-            ) : (
-              <Table.Row>
-                <Table.Cell colSpan={2} textAlign="center">
-                  No authors available
+      <Table.Root
+        key="outline"
+        // size="md"
+        variant="outline"
+        borderRadius="8px"
+      >
+        <Table.Header bg="teal.500">
+          <Table.Row>
+            <Table.ColumnHeader>
+              <Checkbox
+                top="1"
+                _hover={{ cursor: "pointer" }}
+                aria-label="Select all rows"
+                checked={indeterminate ? "indeterminate" : selection.length > 0}
+                onCheckedChange={(changes) => {
+                  setSelection(
+                    changes.checked ? authors.map((item) => item.id) : []
+                  );
+                }}
+              />
+            </Table.ColumnHeader>
+            <Table.ColumnHeader>ID</Table.ColumnHeader>
+            <Table.ColumnHeader textAlign="end">Author</Table.ColumnHeader>
+          </Table.Row>
+        </Table.Header>
+        <Table.Body>
+          {authors.length > 0 ? (
+            authors.map((item) => (
+              <Table.Row
+                key={item.id}
+                data-selected={selection.includes(item.id) ? "" : undefined}
+                bg={selection.includes(item.id) ? "teal.100" : "white"}
+              >
+                <Table.Cell>
+                  <Checkbox
+                    variant="solid"
+                    colorPalette="teal"
+                    top="1"
+                    _hover={{ cursor: "pointer" }}
+                    aria-label="Select row"
+                    checked={selection.includes(item.id)}
+                    onCheckedChange={(changes) => {
+                      setSelection((prev) =>
+                        changes.checked
+                          ? [...prev, item.id]
+                          : selection.filter((id) => id !== item.id)
+                      );
+                    }}
+                  />
                 </Table.Cell>
+                <Table.Cell>{item.id}</Table.Cell>
+                <Table.Cell textAlign="end">{item.name}</Table.Cell>
               </Table.Row>
-            )}
-          </Table.Body>
-        </Table.Root>
-
-        <Center>
-          <PaginationRoot
-            count={totalPages}
-            pageSize={pageSize}
-            defaultPage={1}
-            page={currentPage}
-            onPageChange={(e) => {
-              console.log(e.page);
-              setCurrentPage(e.page);
-            }}
-            size="sm"
-            color="teal.600"
-          >
-            <HStack>
-              <PaginationPrevTrigger color="black" />
-              <PaginationItems color="black" />
-              <PaginationNextTrigger color="black" />
-            </HStack>
-          </PaginationRoot>
-        </Center>
-      </Flex>
+            ))
+          ) : (
+            <Table.Row>
+              <Table.Cell colSpan={2} textAlign="center">
+                No authors available
+              </Table.Cell>
+            </Table.Row>
+          )}
+        </Table.Body>
+      </Table.Root>
       <ActionBarRoot open={hasSelection}>
         <ActionBarContent bg="teal.50" borderWidth="1px">
           <ActionBarSelectionTrigger>
