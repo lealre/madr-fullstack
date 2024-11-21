@@ -19,7 +19,7 @@ const AlertMessage: React.FC<AlertMessageProps> = ({ type, message }) => {
       width="90%"
       maxWidth="400px"
     >
-      <Alert status={type} borderRadius="5px">
+      <Alert variant="solid" status={type} borderRadius="5px">
         {message}
       </Alert>
     </Stack>

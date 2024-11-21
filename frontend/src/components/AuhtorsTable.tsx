@@ -52,7 +52,7 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({ authors }) => {
     reset,
     formState: { errors },
   } = useForm<AuthorFormProps>();
-  const [error, setError] = useState<string>();
+  const [message, setMessage] = useState<string>();
 
   const [selection, setSelection] = useState<number[]>([]);
   const hasSelection = selection.length > 0;
@@ -71,25 +71,25 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({ authors }) => {
       if (axios.isAxiosError(err)) {
         if (!err.response) {
           console.error("No response from the server:", err);
-          setError("Unable to reach the server. Please try again later.");
+          setMessage("Unable to reach the server. Please try again later.");
         } else if (err.response.status === 500) {
           console.error("Server error:", err.response);
-          setError(
+          setMessage(
             "An internal server error occurred. Please try again later."
           );
         } else if (err.response.status === 401) {
           console.error("Authentication error:", err.response);
-          setError("Invalid login credentials.");
+          setMessage("Invalid login credentials.");
         } else if (err.response.status === 400) {
           console.error("Author already registered:", err.response);
-          setError("Author already registered");
+          setMessage("Author already registered");
         } else {
           console.error("Error:", err.response);
-          setError("An unexpected error occurred. Please try again.");
+          setMessage("An unexpected error occurred. Please try again.");
         }
       } else {
         console.error("Non-Axios error:", err);
-        setError("An unexpected error occurred.");
+        setMessage("An unexpected error occurred.");
       }
     }
   });
@@ -231,7 +231,7 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({ authors }) => {
         </ActionBarContent>
       </ActionBarRoot>
 
-      {error && <AlertMessage type="error" message={error} />}
+      {message && <AlertMessage type="error" message={message} />}
     </>
   );
 };

@@ -7,6 +7,7 @@ import {
 import LoginPage from "../pages/LoginPage";
 import Dashboard from "../pages/DashboardPage";
 import HomePage from "../pages/HomePage";
+import SingUpPage from "../pages/SingUpPage";
 import PrivateRoute from "../routes/PrivateRoute";
 
 export default function AppRouter() {
@@ -16,6 +17,7 @@ export default function AppRouter() {
         {/* Public route */}
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/singup" element={<SingUpPage />} />
 
         {/* Private route */}
         <Route

@@ -11,22 +11,23 @@ import AlertMessage from "../components/AlertMessage";
 export default function LoginPage() {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [error, setError] = useState<string>();
+  const [message, setMessage] = useState<string>();
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (location.state?.error) {
-      setError(location.state.error);
+    if (location.state?.message) {
+      setMessage(location.state.message);
     }
 
     navigate(location.pathname, { replace: true });
 
     const timer = setTimeout(() => {
-      return setError("");
+      return setMessage("");
     }, 5000);
 
     return () => clearTimeout(timer);
+    
   }, [location.state]);
 
   const handleLogin = async (
@@ -42,8 +43,6 @@ export default function LoginPage() {
 
       const response = await api.post("/auth/token", formData);
       const { access_token } = response.data;
-      console.log(response.data);
-      // Save the JWT token in localStorage
       localStorage.setItem("token", access_token);
 
       // Navigate to the dashboard after successful login
@@ -52,22 +51,22 @@ export default function LoginPage() {
       if (axios.isAxiosError(err)) {
         if (!err.response) {
           console.error("No response from the server:", err);
-          setError("Unable to reach the server. Please try again later.");
+          setMessage("Unable to reach the server. Please try again later.");
         } else if (err.response.status === 500) {
           console.error("Server error:", err.response);
-          setError(
+          setMessage(
             "An internal server error occurred. Please try again later."
           );
         } else if (err.response.status === 401 || err.response.status === 400) {
           console.error("Authentication error:", err.response);
-          setError("Invalid login credentials.");
+          setMessage("Invalid login credentials.");
         } else {
           console.error("Error:", err.response);
-          setError("An unexpected error occurred. Please try again.");
+          setMessage("An unexpected error occurred. Please try again.");
         }
       } else {
         console.error("Non-Axios error:", err);
-        setError("An unexpected error occurred.");
+        setMessage("An unexpected error occurred.");
       }
     }
   };
@@ -125,7 +124,7 @@ export default function LoginPage() {
             </Card.Footer>
           </Card.Root>
         </form>
-        {error && <AlertMessage type="error" message={error} />}
+        {message && <AlertMessage type="error" message={message} />}
       </Flex>
     </>
   );

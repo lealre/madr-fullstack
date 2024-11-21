@@ -41,6 +41,11 @@ async def register_new_user_in_db(session: AsyncSession, user: UserSchema):
     return user_db
 
 
+async def get_users_lis_from_db(session: AsyncSession):
+    users_db = await session.scalars(select(User))
+    return users_db
+
+
 async def update_user_info_in_db(
     session: AsyncSession, user_id: int, user: UserSchema, current_user: User
 ):

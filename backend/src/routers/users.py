@@ -5,11 +5,12 @@ from fastapi import APIRouter
 from src.core.database import T_Session
 from src.core.security import CurrentUser
 from src.schemas.base import Message
-from src.schemas.users import UserPublic, UserSchema
+from src.schemas.users import UserPublic, UserSchema, UsersList
 from src.services.users_service import (
     delete_user_in_db,
     register_new_user_in_db,
     update_user_info_in_db,
+    get_users_lis_from_db
 )
 
 router = APIRouter(prefix='/users', tags=['users'])
@@ -19,6 +20,12 @@ router = APIRouter(prefix='/users', tags=['users'])
 async def create_user(user: UserSchema, session: T_Session):
     user_db = await register_new_user_in_db(session=session, user=user)
     return user_db
+
+
+@router.get('/', response_model=UsersList, status_code=HTTPStatus.OK)
+async def get_all_users(session: T_Session, user: CurrentUser):
+    users_db = await get_users_lis_from_db(session=session)
+    return {'users':users_db}
 
 
 @router.put('/{user_id}', response_model=UserPublic)
