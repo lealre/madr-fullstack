@@ -3,22 +3,25 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Card, Flex, Input, Stack } from "@chakra-ui/react";
 import { Field } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
-import axios from "axios";
 import { Toaster, toaster } from "@/components/ui/toaster";
-
-import api from "../api/api.ts";
 import Header from "../components/Header.tsx";
+import useAuthService from "@/api/authApi.ts";
 
 export default function LoginPage() {
-  const [username, setUsername] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const location = useLocation();
   const navigate = useNavigate();
 
+  const { signInUser } = useAuthService();
+
   useEffect(() => {
     if (location.state?.message) {
-      toaster.create({ title: location.state.message, type: "warning" });
+      toaster.create({
+        title: location.state.message.title,
+        type: location.state.message.type,
+      });
     }
     navigate(location.pathname, { replace: true });
   }, [location.state]);
@@ -30,50 +33,19 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // Make the POST request to the FastAPI backend
-      const formData = new URLSearchParams();
-      formData.append("username", username);
-      formData.append("password", password);
-
-      const response = await api.post("/auth/token", formData);
-      const { access_token } = response.data;
-      localStorage.setItem("token", access_token);
-
-      navigate("/dashboard");
-    } catch (err) {
-      if (axios.isAxiosError(err)) {
-        if (!err.response) {
-          console.error("No response from the server:", err);
-          toaster.create({
-            title: "Unable to reach the server. Please try again later.",
-            type: "error",
-          });
-        } else if (err.response.status === 500) {
-          console.error("Server error:", err.response);
-          toaster.create({
-            title: "An internal server error occurred. Please try again later.",
-            type: "error",
-          });
-        } else if (err.response.status === 401 || err.response.status === 400) {
-          console.error("Authentication error:", err.response);
-          toaster.create({
-            title: "Invalid login credentials.",
-            type: "error",
-          });
-        } else {
-          console.error("Error:", err.response);
-          toaster.create({
-            title: "An unexpected error occurred. Please try again.",
-            type: "error",
-          });
-        }
-      } else {
-        console.error("Non-Axios error:", err);
+      const response = await signInUser({ email: email, password: password });
+      if (response.success === false) {
+        console.log(response)
         toaster.create({
-          title: "An unexpected error occurred.",
+          title: response.error?.detail ?? "An error occurred",
           type: "error",
         });
+      } else {
+        localStorage.setItem("token", response.data?.access_token ?? "");
+        navigate("/dashboard");
       }
+    } catch (error) {
+      // console.log(error);
     } finally {
       setIsLoading(false);
     }
@@ -103,8 +75,8 @@ export default function LoginPage() {
                     borderColor="teal.300"
                     type="text"
                     required
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                   />
                 </Field>
                 <Field label="Password">
@@ -121,7 +93,7 @@ export default function LoginPage() {
             <Card.Footer justifyContent="flex-end">
               <Button
                 onClick={() => {
-                  setUsername("");
+                  setEmail("");
                   setPassword("");
                 }}
               >

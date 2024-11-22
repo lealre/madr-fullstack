@@ -28,7 +28,8 @@ const singUpPage = () => {
       await api.post("/users/", data);
       navigate("/login", {
         state: {
-          message: "Account created successfully! Please log in.",
+          message: {title: "Account created successfully! Please log in.", type: "success"},
+
         },
       });
     } catch (err) {

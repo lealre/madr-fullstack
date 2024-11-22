@@ -15,6 +15,7 @@
     "axios": "^1.7.7",
     "jwt-decode": "^4.0.0",
     "next-themes": "^0.4.3",
+    "qs": "^6.13.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.53.2",
@@ -23,6 +24,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",
+    "@types/qs": "^6.9.17",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.3",
