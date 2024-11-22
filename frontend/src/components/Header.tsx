@@ -2,14 +2,30 @@ import React from "react";
 import { Box, Flex, Heading, Button, Link } from "@chakra-ui/react";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import {
+  DrawerBackdrop,
+  DrawerBody,
+  DrawerCloseTrigger,
+  DrawerContent,
+  DrawerHeader,
+  DrawerRoot,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+import { ImMenu } from "react-icons/im";
+
 const Header: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const isAuthenticated = !!localStorage.getItem("token");
 
   const handleLogout = () => {
-    localStorage.removeItem("token"); // Remove the token to log out
-    navigate("/", { state: { message: "You have successfully logged out." } }); // Redirect to login page
+    localStorage.removeItem("token");
+    navigate("/", {
+      state: {
+        message: { title: "You have successfully logged out.", type: "info" },
+      },
+    });
   };
 
   return (
@@ -34,31 +50,82 @@ const Header: React.FC = () => {
           </Link>
         </Heading>
 
-        {/* Conditionally render Login or Logout based on authentication status */}
-        {isAuthenticated ? (
-          <Button
-            variant="plain" // Makes the button look like a link
-            color="white" // Sets the text color to white
-            fontSize="18px" // Sets the font size
-            _hover={{ textDecoration: "none", color: "gray.200" }} // Removes underline and changes color on hover
-            onClick={handleLogout}
-          >
-            Logout
-          </Button>
-        ) : (
-          location.pathname !== "/login" && (
-            <Link
-              href="/login"
-              style={{ textDecoration: "none" }}
-              variant="plain"
-              color="white"
-              fontSize="18px"
-              _hover={{ color: "gray.200" }}
+        <DrawerRoot size="xs" initialFocusEl={() => null}>
+          <DrawerBackdrop />
+          <DrawerTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              borderWidth={2}
+              borderColor="white"
+              _hover={{ backgroundColor: "teal.500" }}
             >
-              Login
-            </Link>
-          )
-        )}
+              <ImMenu />
+            </Button>
+          </DrawerTrigger>
+          <DrawerContent bg="teal.600">
+            <DrawerHeader>
+              <DrawerTitle></DrawerTitle>
+            </DrawerHeader>
+            <DrawerBody>
+              <Flex
+                direction="column"
+                justify="flex-start"
+                alignItems="flex-start"
+              >
+                {isAuthenticated ? (
+                  <Button
+                    variant="plain"
+                    color="white"
+                    fontSize="18px"
+                    _hover={{ textDecoration: "none", color: "gray.200" }}
+                    _focus={{
+                      textDecoration: "none",
+                      outline: "none",
+                      color: "gray.100",
+                    }}
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </Button>
+                ) : (
+                  location.pathname !== "/login" && (
+                    <Button
+                      variant="plain"
+                      color="white"
+                      fontSize="18px"
+                      _hover={{ textDecoration: "none", color: "gray.200" }}
+                      _focus={{
+                        textDecoration: "none",
+                        outline: "none",
+                        color: "gray.100",
+                      }}
+                      asChild
+                    >
+                      <Link href="/login">Login</Link>
+                    </Button>
+                  )
+                )}
+
+                <Button
+                  variant="plain"
+                  color="white"
+                  fontSize="18px"
+                  _hover={{ textDecoration: "none", color: "gray.200" }}
+                  _focus={{
+                    textDecoration: "none",
+                    outline: "none",
+                    color: "gray.100",
+                  }}
+                  asChild
+                >
+                  <Link href="/singup">Sing Up</Link>
+                </Button>
+              </Flex>
+            </DrawerBody>
+            <DrawerCloseTrigger _hover={{ backgroundColor: "teal.500" }} />
+          </DrawerContent>
+        </DrawerRoot>
       </Flex>
     </Box>
   );

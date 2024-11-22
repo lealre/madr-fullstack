@@ -1,10 +1,4 @@
-import {
-  Button,
-  Flex,
-  Input,
-  Stack,
-  Table,
-} from "@chakra-ui/react";
+import { Button, Flex, Input, Stack, Table } from "@chakra-ui/react";
 import { InputGroup } from "./ui/input-group";
 import { LuSearch } from "react-icons/lu";
 import { GrAdd } from "react-icons/gr";
@@ -26,11 +20,11 @@ import {
   ActionBarSelectionTrigger,
   ActionBarSeparator,
 } from "@/components/ui/action-bar";
+import { Toaster, toaster } from "@/components/ui/toaster";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useForm } from "react-hook-form";
-import api from "../api";
+import api from "../api/api";
 import axios from "axios";
-import AlertMessage from "../components/AlertMessage";
 
 interface AuthorsProps {
   id: number;
@@ -52,7 +46,6 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({ authors }) => {
     reset,
     formState: { errors },
   } = useForm<AuthorFormProps>();
-  const [message, setMessage] = useState<string>();
 
   const [selection, setSelection] = useState<number[]>([]);
   const hasSelection = selection.length > 0;
@@ -71,25 +64,38 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({ authors }) => {
       if (axios.isAxiosError(err)) {
         if (!err.response) {
           console.error("No response from the server:", err);
-          setMessage("Unable to reach the server. Please try again later.");
+          toaster.create({
+            title: "Unable to reach the server. Please try again later.",
+            type: "error",
+          });
         } else if (err.response.status === 500) {
           console.error("Server error:", err.response);
-          setMessage(
-            "An internal server error occurred. Please try again later."
-          );
+          toaster.create({
+            title: "An internal server error occurred. Please try again later.",
+            type: "error",
+          });
         } else if (err.response.status === 401) {
           console.error("Authentication error:", err.response);
-          setMessage("Invalid login credentials.");
+          toaster.create({
+            title: "Invalid login credentials.",
+            type: "error",
+          });
         } else if (err.response.status === 400) {
           console.error("Author already registered:", err.response);
-          setMessage("Author already registered");
+          toaster.create({ title: "Author already registered", type: "error" });
         } else {
           console.error("Error:", err.response);
-          setMessage("An unexpected error occurred. Please try again.");
+          toaster.create({
+            title: "An unexpected error occurred. Please try again.",
+            type: "error",
+          });
         }
       } else {
         console.error("Non-Axios error:", err);
-        setMessage("An unexpected error occurred.");
+        toaster.create({
+          title: "An unexpected error occurred.",
+          type: "error",
+        });
       }
     }
   });
@@ -230,8 +236,7 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({ authors }) => {
           </Button>
         </ActionBarContent>
       </ActionBarRoot>
-
-      {message && <AlertMessage type="error" message={message} />}
+      <Toaster />
     </>
   );
 };

@@ -4,7 +4,7 @@ import { Tabs } from "@chakra-ui/react";
 import { LuUser } from "react-icons/lu";
 import { IoBookSharp } from "react-icons/io5";
 import { FaUserAlt } from "react-icons/fa";
-import api from "../api";
+import api from "../api/apiRoot";
 import Header from "../components/Header";
 import AuthorsTable, {
   AuthorsTableProps 

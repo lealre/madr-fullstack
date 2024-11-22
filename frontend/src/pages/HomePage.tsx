@@ -1,45 +1,40 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import AlertMessage from "../components/AlertMessage";
 import Header from "../components/Header";
-import { useEffect, useState } from "react";
-import {  Container, Flex, Text } from "@chakra-ui/react";
+import { useEffect } from "react";
+import { Container, Flex, Text } from "@chakra-ui/react";
+import { Toaster, toaster } from "@/components/ui/toaster";
 
 const HomePage: React.FC = () => {
-  const [message, setMessage] = useState<string>("");
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (location.state?.message) {
-      setMessage(location.state.message);
+      toaster.create({
+        title: location.state.message.title,
+        type: location.state.message.type,
+      });
     }
 
     navigate(location.pathname, { replace: true });
-
-    const timer = setTimeout(() => {
-      return setMessage("");
-    }, 5000);
-
-    return () => clearTimeout(timer);
   }, [location.state]);
 
-return (
-  <>
-    <Header />
-    <Container mt={8} justifyContent="center">
-      <Flex
-        maxWidth="1500px"
-        direction="column"
-        alignItems="center"
-        textAlign="center"
-      >
-        <Text textStyle="5xl">Welcome to MADR App!</Text>
-      </Flex>
-    </Container>
-
-    {message && <AlertMessage type="info" message={message} />}
-  </>
-);
+  return (
+    <>
+      <Header />
+      <Container mt={8} justifyContent="center">
+        <Flex
+          maxWidth="1500px"
+          direction="column"
+          alignItems="center"
+          textAlign="center"
+        >
+          <Text textStyle="5xl">Welcome to MADR App!</Text>
+        </Flex>
+      </Container>
+      <Toaster />
+    </>
+  );
 };
 
 export default HomePage;

@@ -1,39 +1,33 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Button, Card, Flex, Input, Stack } from "@chakra-ui/react";
+import { Card, Flex, Input, Stack } from "@chakra-ui/react";
 import { Field } from "@/components/ui/field";
+import { Button } from "@/components/ui/button";
 import axios from "axios";
+import { Toaster, toaster } from "@/components/ui/toaster";
 
-import api from "../api.ts";
+import api from "../api/api.ts";
 import Header from "../components/Header.tsx";
-import AlertMessage from "../components/AlertMessage";
 
 export default function LoginPage() {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [message, setMessage] = useState<string>();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (location.state?.message) {
-      setMessage(location.state.message);
+      toaster.create({ title: location.state.message, type: "warning" });
     }
-
     navigate(location.pathname, { replace: true });
-
-    const timer = setTimeout(() => {
-      return setMessage("");
-    }, 5000);
-
-    return () => clearTimeout(timer);
-    
   }, [location.state]);
 
   const handleLogin = async (
     e: React.FormEvent<HTMLFormElement>
   ): Promise<void> => {
     e.preventDefault();
+    setIsLoading(true);
 
     try {
       // Make the POST request to the FastAPI backend
@@ -45,29 +39,43 @@ export default function LoginPage() {
       const { access_token } = response.data;
       localStorage.setItem("token", access_token);
 
-      // Navigate to the dashboard after successful login
       navigate("/dashboard");
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (!err.response) {
           console.error("No response from the server:", err);
-          setMessage("Unable to reach the server. Please try again later.");
+          toaster.create({
+            title: "Unable to reach the server. Please try again later.",
+            type: "error",
+          });
         } else if (err.response.status === 500) {
           console.error("Server error:", err.response);
-          setMessage(
-            "An internal server error occurred. Please try again later."
-          );
+          toaster.create({
+            title: "An internal server error occurred. Please try again later.",
+            type: "error",
+          });
         } else if (err.response.status === 401 || err.response.status === 400) {
           console.error("Authentication error:", err.response);
-          setMessage("Invalid login credentials.");
+          toaster.create({
+            title: "Invalid login credentials.",
+            type: "error",
+          });
         } else {
           console.error("Error:", err.response);
-          setMessage("An unexpected error occurred. Please try again.");
+          toaster.create({
+            title: "An unexpected error occurred. Please try again.",
+            type: "error",
+          });
         }
       } else {
         console.error("Non-Axios error:", err);
-        setMessage("An unexpected error occurred.");
+        toaster.create({
+          title: "An unexpected error occurred.",
+          type: "error",
+        });
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -77,16 +85,15 @@ export default function LoginPage() {
       <Flex direction="column" justify="center" align="center" height="75vh">
         <form onSubmit={handleLogin}>
           <Card.Root
-            maxW="sm"
+            w="sm"
             colorPalette="teal"
             layerStyle="fill.subtle"
-            // backgroundColor="teal.400"
             variant="elevated"
           >
             <Card.Header>
-              <Card.Title>Sign up</Card.Title>
+              <Card.Title>Sign In</Card.Title>
               <Card.Description color="teal.600">
-                Fill in the form below to create an account
+                Fill in the form below to login
               </Card.Description>
             </Card.Header>
             <Card.Body>
@@ -120,11 +127,13 @@ export default function LoginPage() {
               >
                 Cancel
               </Button>
-              <Button type="submit">Sign in</Button>
+              <Button type="submit" loading={isLoading}>
+                Sign in
+              </Button>
             </Card.Footer>
           </Card.Root>
         </form>
-        {message && <AlertMessage type="error" message={message} />}
+        <Toaster />
       </Flex>
     </>
   );

@@ -3,11 +3,10 @@ import { Field } from "@/components/ui/field";
 import { useForm } from "react-hook-form";
 import Header from "../components/Header";
 import { useNavigate } from "react-router-dom";
-import AlertMessage from "@/components/AlertMessage";
 import axios from "axios";
 
-import api from "../api.ts";
-import { useState } from "react";
+import api from "../api/api.ts";
+import { Toaster, toaster } from "@/components/ui/toaster";
 
 interface SingUpFormProps {
   username: string;
@@ -22,7 +21,6 @@ const singUpPage = () => {
     reset,
     formState: { errors },
   } = useForm<SingUpFormProps>();
-  const [message, setMessage] = useState<string>();
   const navigate = useNavigate();
 
   const handleAddAuthor = handleSubmit(async (data) => {
@@ -37,22 +35,22 @@ const singUpPage = () => {
       if (axios.isAxiosError(err)) {
         if (!err.response) {
           console.error("No response from the server:", err);
-          setMessage("Unable to reach the server. Please try again later.");
+          toaster.create({title: "Unable to reach the server. Please try again later.", type: "error"});
         } else if (err.response.status === 500) {
           console.error("Server error:", err.response);
-          setMessage(
-            "An internal server error occurred. Please try again later."
+          toaster.create(
+            {title: "An internal server error occurred. Please try again later.", type: "error"}
           );
         } else if (err.response.status === 400) {
           console.error("Credentials already exists", err.response);
-          setMessage(err.response.data.detail);
+          toaster.create({title: err.response.data.detail, type: "error"});
         } else {
           console.error("Error:", err.response);
-          setMessage("An unexpected error occurred. Please try again.");
+          toaster.create({title: "An unexpected error occurred. Please try again.", type: "error"});
         }
       } else {
         console.error("Non-Axios error:", err);
-        setMessage("An unexpected error occurred.");
+        toaster.create({title: "An unexpected error occurred.", type: "error"});
       }
     }
   });
@@ -63,7 +61,7 @@ const singUpPage = () => {
       <Flex direction="column" justify="center" align="center" height="75vh">
         <form onSubmit={handleAddAuthor}>
           <Card.Root
-            maxW="sm"
+            w="md"
             colorPalette="teal"
             layerStyle="fill.subtle"
             variant="elevated"
@@ -131,8 +129,8 @@ const singUpPage = () => {
             </Card.Footer>
           </Card.Root>
         </form>
-        {message && <AlertMessage type="error" message={message} />}
       </Flex>
+      <Toaster/>
     </>
   );
 };

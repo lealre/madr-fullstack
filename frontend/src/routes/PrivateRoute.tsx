@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import {jwtDecode} from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -17,7 +17,9 @@ const PrivateRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     return (
       <Navigate
         to="/login"
-        state={{ message: "You need to authenticate first" }}
+        state={{
+          message: { title: "You need to authenticate first", type: "warning" },
+        }}
       />
     );
   }
@@ -31,7 +33,12 @@ const PrivateRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
       return (
         <Navigate
           to="/login"
-          state={{ message: "Session expired. Please log in again." }}
+          state={{
+            message: {
+              title: "Session expired. Please log in again.",
+              type: "warning",
+            },
+          }}
         />
       );
     }
@@ -41,7 +48,12 @@ const PrivateRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     return (
       <Navigate
         to="/login"
-        state={{ message: "Invalid session. Please log in again." }}
+        state={{
+          message: {
+            title: "Invalid session. Please log in again.",
+            type: "warining",
+          },
+        }}
       />
     );
   }
