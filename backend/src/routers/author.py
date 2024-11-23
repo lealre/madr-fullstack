@@ -5,8 +5,8 @@ from fastapi import APIRouter
 from src.core.database import T_Session
 from src.core.security import CurrentUser
 from src.schemas.authors import AuthorList, AuthorPublic, AuthorSchema
-from src.schemas.responses import response_model
 from src.schemas.base import Message
+from src.schemas.responses import response_model
 from src.services.author_service import (
     delete_author_from_db,
     get_author_by_id_from_db,
@@ -19,13 +19,13 @@ router = APIRouter(prefix='/author', tags=['author'])
 
 
 @router.post(
-    '/', 
-    response_model=AuthorPublic, 
+    '/',
+    response_model=AuthorPublic,
     status_code=HTTPStatus.CREATED,
-    responses= {
+    responses={
         HTTPStatus.BAD_REQUEST: response_model,
         HTTPStatus.UNAUTHORIZED: response_model,
-    }
+    },
 )
 async def add_author(
     author: AuthorSchema, session: T_Session, user: CurrentUser
@@ -35,12 +35,12 @@ async def add_author(
 
 
 @router.delete(
-    '/{author_id}', 
+    '/{author_id}',
     response_model=Message,
-    responses= {
+    responses={
         HTTPStatus.NOT_FOUND: response_model,
         HTTPStatus.UNAUTHORIZED: response_model,
-    }
+    },
 )
 async def delete_author(author_id: int, session: T_Session, user: CurrentUser):
     await delete_author_from_db(session=session, author_id=author_id)
@@ -48,12 +48,12 @@ async def delete_author(author_id: int, session: T_Session, user: CurrentUser):
 
 
 @router.patch(
-    '/{author_id}', 
+    '/{author_id}',
     response_model=AuthorPublic,
-    responses= {
+    responses={
         HTTPStatus.NOT_FOUND: response_model,
         HTTPStatus.UNAUTHORIZED: response_model,
-    }
+    },
 )
 async def update_author(
     author_id: int, author: AuthorSchema, session: T_Session, user: CurrentUser
@@ -65,12 +65,12 @@ async def update_author(
 
 
 @router.get(
-    '/{author_id}', 
+    '/{author_id}',
     response_model=AuthorPublic,
-    responses= {
+    responses={
         HTTPStatus.NOT_FOUND: response_model,
         HTTPStatus.UNAUTHORIZED: response_model,
-    }
+    },
 )
 async def get_author_by_id(author_id: int, session: T_Session):
     author_db = await get_author_by_id_from_db(

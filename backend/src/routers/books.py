@@ -33,7 +33,7 @@ async def add_book(book: BookSchema, session: T_Session, user: CurrentUser):
 
 
 @router.delete(
-    '/{book_id}', 
+    '/{book_id}',
     response_model=Message,
     responses={
         HTTPStatus.NOT_FOUND: response_model,
@@ -46,7 +46,7 @@ async def delete_book(book_id: int, session: T_Session, user: CurrentUser):
 
 
 @router.patch(
-    '/{book_id}', 
+    '/{book_id}',
     response_model=BookPublic,
     responses={
         HTTPStatus.NOT_FOUND: response_model,
@@ -63,7 +63,7 @@ async def update_book(
 
 
 @router.get(
-    '/{book_id}', 
+    '/{book_id}',
     response_model=BookPublic,
     responses={
         HTTPStatus.NOT_FOUND: response_model,
