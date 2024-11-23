@@ -4,21 +4,25 @@ import { Tabs } from "@chakra-ui/react";
 import { LuUser } from "react-icons/lu";
 import { IoBookSharp } from "react-icons/io5";
 import { FaUserAlt } from "react-icons/fa";
-import api from "../api/api";
+import useAuthorsService from "@/api/authorsApi";
 import Header from "../components/Header";
-import AuthorsTable, {
-  AuthorsTableProps 
-} from "../components/AuhtorsTable";
-import Pagination, {PageProps} from "../components/Pagination"
-import BooksTable, { BooksTableProps } from "../components/BooksTable";
+import AuthorsTable from "../components/AuhtorsTable";
+import {AuthorResponseDto} from "@/dto/AuthorsDto"
+import { BookResponseDto } from "@/dto/BooksDto";
+import Pagination, { PageProps } from "../components/Pagination";
+import BooksTable from "../components/BooksTable";
+import { Toaster, toaster } from "@/components/ui/toaster";
+import useBooksService from "@/api/booksApi";
 
 interface TabProps {
   value: string;
 }
 
 const Dashboard: React.FC = () => {
-  const [authors, setAuthors] = useState<AuthorsTableProps["authors"]>([]);
-  const [books, setBooks] = useState<BooksTableProps["books"]>([]);
+  const { getAuthors } = useAuthorsService();
+  const { getBooks } = useBooksService();
+  const [authors, setAuthors] = useState<AuthorResponseDto[]>([]);
+  const [books, setBooks] = useState<BookResponseDto[]>([]);
   const [tab, setTab] = useState<TabProps>({ value: "authors" });
 
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -43,29 +47,36 @@ const Dashboard: React.FC = () => {
     setIsLoading(true);
     const offset = (page - 1) * pageSize;
 
-    try {
-      const response = await api.get(
-        `/author/?limit=${pageSize}&offset=${offset}`
-      );
+    const response = await getAuthors({ limit: pageSize, offset: offset });
+    if (response.data && response.success) {
       setAuthors(response.data.authors);
-      setTotalResults(response.data.total_results);
-    } catch (err) {
-      console.log(err);
-    } finally {
-      setIsLoading(false);
+      const totalResults = response.data.total_results;
+      setTotalResults(totalResults);
+    } else {
+      toaster.create({
+        title: response.error.detail,
+        type: "error",
+      });
+      setAuthors([]);
     }
+
+    setIsLoading(false);
   };
 
   const fetchBooks = async (): Promise<void> => {
-    try {
-      const response = await api.get("/book/");
+    const response = await getBooks();
+    if (response.data && response.success) {
       setBooks(response.data.books);
-    } catch (err) {
-      console.log(err);
+    } else {
+      toaster.create({
+        title: response.error.detail,
+        type: "error",
+      });
+      setBooks([]);
     }
   };
 
-  const changeTabView = (e: any) => {
+  const changeTabView = (e: TabProps) => {
     setTab(e);
     e.value === "authors" ? fetchAuthors(currentPage) : fetchBooks();
   };
@@ -81,7 +92,6 @@ const Dashboard: React.FC = () => {
             test
           </Text>
         </Flex>
-
         <Box mt={8}>
           <Flex borderBottom="1px solid black" mb={3} justify="space-between">
             <Text fontWeight="semibold" fontSize="40px" mb={0}>
@@ -135,6 +145,7 @@ const Dashboard: React.FC = () => {
             <BooksTable books={books} />
           )}
         </Box>
+        <Toaster />
       </Container>
     </>
   );

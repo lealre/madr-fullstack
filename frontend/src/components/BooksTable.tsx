@@ -3,19 +3,13 @@ import React from "react";
 import { InputGroup } from "./ui/input-group";
 import { LuSearch } from "react-icons/lu";
 import { GrAdd } from "react-icons/gr";
-
-interface BooksProps {
-  id: number;
-  title: string;
-  year: number;
-  author_id: number;
-}
+import { BookResponseDto } from "@/dto/BooksDto";
 
 export interface BooksTableProps {
-  books: BooksProps[];
+  books: BookResponseDto[];
 }
 
-const BooksTable: React.FC<BooksTableProps> = ({books}) => {
+const BooksTable: React.FC<BooksTableProps> = ({ books }) => {
   return (
     <>
       <Flex gap="4" justify="space-between" mb={2}>

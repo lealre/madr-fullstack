@@ -42,7 +42,8 @@ const useRootApiService = () => {
               detail: "Unable to reach the server. Please try again later.",
             },
           };
-        } else if (error.response.status === 500) {
+        }
+        if (error.response.status === 500) {
           return {
             data: undefined,
             success: false,
@@ -52,7 +53,8 @@ const useRootApiService = () => {
                 "An internal server error occurred. Please try again later.",
             },
           };
-        } else if (error.response.status === 401) {
+        }
+        if (error.response.status === 401) {
           return {
             data: undefined,
             success: false,
@@ -61,17 +63,27 @@ const useRootApiService = () => {
           };
           // navigate to home here
         }
-      } else {
-        return {
-          data: undefined,
-          success: false,
-          code: null,
-          error: {
-            detail: "An unexpected error occurred. Please try again.",
-          },
-        };
+        if (error.response.status == 422) {
+          const formattedErrors = error.response.data.detail.map((err: any) => {
+            return `Field ${err.loc[1]} invalid. ${err.msg}`;
+          });
+          return {
+            data: undefined,
+            success: false,
+            code: error.response.status,
+            error: formattedErrors,
+          };
+        }
+        return Promise.reject(error);
       }
-      return Promise.reject(error);
+      return {
+        data: undefined,
+        success: false,
+        code: null,
+        error: {
+          detail: "An unexpected error occurred. Please try again.",
+        },
+      };
     }
   );
 
@@ -90,6 +102,7 @@ const useRootApiService = () => {
         error: undefined,
       };
     } catch (error: any) {
+      console.log(error);
       return {
         data: undefined,
         success: false,
@@ -118,8 +131,8 @@ const useRootApiService = () => {
       return {
         data: undefined,
         success: false,
-        code: error.response?.status,
-        error: error.response?.data,
+        code: error.response.status,
+        error: error.response.data,
       };
     }
   }
@@ -142,9 +155,7 @@ const useRootApiService = () => {
         error: undefined,
       };
     } catch (error) {
-      console.log(error);
       if (axios.isAxiosError(error)) {
-        console.log(error);
         if (!error.response) {
           return {
             data: undefined,
@@ -154,7 +165,8 @@ const useRootApiService = () => {
               detail: "Unable to reach the server. Please try again later.",
             },
           };
-        } else if (error.response.status === 500) {
+        }
+        if (error.response.status === 500) {
           return {
             data: undefined,
             success: false,
@@ -165,13 +177,30 @@ const useRootApiService = () => {
             },
           };
         }
+        if (error.response.status == 422) {
+          const formattedErrors = error.response.data.detail.map((err: any) => {
+            return `Field ${err.loc[1]} invalid. ${err.msg}`;
+          });
+          return {
+            data: undefined,
+            success: false,
+            code: error.response.status,
+            error: formattedErrors,
+          };
+        }
+        return {
+          data: undefined,
+          success: false,
+          code: error.response.status,
+          error: error.response.data,
+        };
       }
       return {
         data: undefined,
         success: false,
         code: null,
         error: {
-          detail: "An unexpected error occurred. Please try again.",
+          detail: "An unexpected error occurred.",
         },
       };
     }

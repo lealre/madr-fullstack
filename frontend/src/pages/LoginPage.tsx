@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Card, Flex, Input, Stack } from "@chakra-ui/react";
+import { Box, Card, Flex, Input, Stack } from "@chakra-ui/react";
 import { Field } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { Toaster, toaster } from "@/components/ui/toaster";
@@ -30,81 +30,88 @@ export default function LoginPage() {
     e: React.FormEvent<HTMLFormElement>
   ): Promise<void> => {
     e.preventDefault();
+    if (isLoading) return;
     setIsLoading(true);
 
-    try {
-      const response = await signInUser({ email: email, password: password });
-      if (response.success === false) {
-        console.log(response)
-        toaster.create({
-          title: response.error?.detail ?? "An error occurred",
-          type: "error",
-        });
-      } else {
-        localStorage.setItem("token", response.data?.access_token ?? "");
-        navigate("/dashboard");
-      }
-    } catch (error) {
-      // console.log(error);
-    } finally {
-      setIsLoading(false);
+    const response = await signInUser({ email: email, password: password });
+    if (response.data && response.success) {
+      localStorage.setItem("token", response.data.access_token);
+      navigate("/dashboard");
+    } else {
+      toaster.create({
+        title: response.error?.detail ?? "An error occurred",
+        type: "error",
+      });
     }
+
+    setIsLoading(false);
   };
 
   return (
     <>
-      <Header />
-      <Flex direction="column" justify="center" align="center" height="75vh">
-        <form onSubmit={handleLogin}>
-          <Card.Root
-            w="sm"
-            colorPalette="teal"
-            layerStyle="fill.subtle"
-            variant="elevated"
-          >
-            <Card.Header>
-              <Card.Title>Sign In</Card.Title>
-              <Card.Description color="teal.600">
-                Fill in the form below to login
-              </Card.Description>
-            </Card.Header>
-            <Card.Body>
-              <Stack gap="4" w="full">
-                <Field label="Email">
-                  <Input
-                    borderColor="teal.300"
-                    type="text"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </Field>
-                <Field label="Password">
-                  <Input
-                    borderColor="teal.300"
-                    required
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </Field>
-              </Stack>
-            </Card.Body>
-            <Card.Footer justifyContent="flex-end">
-              <Button
-                onClick={() => {
-                  setEmail("");
-                  setPassword("");
-                }}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" loading={isLoading}>
-                Sign in
-              </Button>
-            </Card.Footer>
-          </Card.Root>
-        </form>
+      <Flex direction="column" minHeight="100vh">
+        <Box>
+          <Header />
+        </Box>
+
+        <Flex
+          direction="column"
+          justify="center"
+          align="center"
+          marginTop={1}
+          flex="1" // Takes up the remaining space after Header
+        >
+          <form onSubmit={handleLogin}>
+            <Card.Root
+              w="sm"
+              colorPalette="teal"
+              layerStyle="fill.subtle"
+              variant="elevated"
+            >
+              <Card.Header>
+                <Card.Title>Sign In</Card.Title>
+                <Card.Description color="teal.600">
+                  Fill in the form below to login
+                </Card.Description>
+              </Card.Header>
+              <Card.Body>
+                <Stack gap="4" w="full">
+                  <Field label="Email">
+                    <Input
+                      borderColor="teal.300"
+                      type="text"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </Field>
+                  <Field label="Password">
+                    <Input
+                      borderColor="teal.300"
+                      required
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                  </Field>
+                </Stack>
+              </Card.Body>
+              <Card.Footer justifyContent="flex-end">
+                <Button
+                  onClick={() => {
+                    setEmail("");
+                    setPassword("");
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" loading={isLoading}>
+                  Sign in
+                </Button>
+              </Card.Footer>
+            </Card.Root>
+          </form>
+        </Flex>
         <Toaster />
       </Flex>
     </>

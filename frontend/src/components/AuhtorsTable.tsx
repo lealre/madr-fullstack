@@ -23,77 +23,46 @@ import {
 import { Toaster, toaster } from "@/components/ui/toaster";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useForm } from "react-hook-form";
-import api from "../api/api";
-import axios from "axios";
+import useRootApiService from "@/api/authorsApi";
+import { AuthorResponseDto, PostBodyCreateAuthorDto } from "@/dto/AuthorsDto";
 
-interface AuthorsProps {
-  id: number;
-  name: string;
-}
 
-export interface AuthorsTableProps {
-  authors: AuthorsProps[];
-}
-
-interface AuthorFormProps {
-  name: string;
+interface AuthorsTableProps {
+  authors: AuthorResponseDto[];
 }
 
 const AuthorsTable: React.FC<AuthorsTableProps> = ({ authors }) => {
+  const { createAuthor } = useRootApiService();
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<AuthorFormProps>();
+  } = useForm<PostBodyCreateAuthorDto>({ mode: "onChange" });
 
   const [selection, setSelection] = useState<number[]>([]);
   const hasSelection = selection.length > 0;
   const indeterminate = hasSelection && selection.length < authors.length;
 
   const handleAddAuthor = handleSubmit(async (data) => {
-    const token = localStorage.getItem("token");
-    try {
-      await api.post("/author/", data, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+    const response = await createAuthor(data);
+    if (response.data && response.success) {
       reset();
-    } catch (err) {
-      if (axios.isAxiosError(err)) {
-        if (!err.response) {
-          console.error("No response from the server:", err);
+      toaster.create({
+        title: "New author created.",
+        type: "success",
+      });
+    } else {
+      if (Array.isArray(response.error)) {
+        response.error.forEach((errorMsg: string) => {
           toaster.create({
-            title: "Unable to reach the server. Please try again later.",
+            title: errorMsg,
             type: "error",
           });
-        } else if (err.response.status === 500) {
-          console.error("Server error:", err.response);
-          toaster.create({
-            title: "An internal server error occurred. Please try again later.",
-            type: "error",
-          });
-        } else if (err.response.status === 401) {
-          console.error("Authentication error:", err.response);
-          toaster.create({
-            title: "Invalid login credentials.",
-            type: "error",
-          });
-        } else if (err.response.status === 400) {
-          console.error("Author already registered:", err.response);
-          toaster.create({ title: "Author already registered", type: "error" });
-        } else {
-          console.error("Error:", err.response);
-          toaster.create({
-            title: "An unexpected error occurred. Please try again.",
-            type: "error",
-          });
-        }
+        });
       } else {
-        console.error("Non-Axios error:", err);
         toaster.create({
-          title: "An unexpected error occurred.",
+          title: response.error?.detail ?? "An error occurred",
           type: "error",
         });
       }
