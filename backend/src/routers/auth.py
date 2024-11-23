@@ -1,15 +1,22 @@
+from http import HTTPStatus
+
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 
 from src.core.database import T_Session
 from src.core.security import CurrentUser
+from src.schemas.responses import response_model
 from src.schemas.token import Token
 from src.services.auth_service import generate_access_token, refresh_token
 
 router = APIRouter(prefix='/auth', tags=['auth'])
 
 
-@router.post('/token', response_model=Token)
+@router.post(
+    '/token',
+    response_model=Token,
+    responses={HTTPStatus.BAD_REQUEST: response_model},
+)
 async def login_for_access_token(
     session: T_Session, form_data: OAuth2PasswordRequestForm = Depends()
 ):

@@ -5,18 +5,24 @@ from fastapi import APIRouter
 from src.core.database import T_Session
 from src.core.security import CurrentUser
 from src.schemas.base import Message
+from src.schemas.responses import response_model
 from src.schemas.users import UserPublic, UserSchema, UsersList
 from src.services.users_service import (
     delete_user_in_db,
+    get_users_lis_from_db,
     register_new_user_in_db,
     update_user_info_in_db,
-    get_users_lis_from_db
 )
 
 router = APIRouter(prefix='/users', tags=['users'])
 
 
-@router.post('/', response_model=UserPublic, status_code=HTTPStatus.CREATED)
+@router.post(
+    '/',
+    response_model=UserPublic,
+    status_code=HTTPStatus.CREATED,
+    responses={HTTPStatus.BAD_REQUEST: response_model},
+)
 async def create_user(user: UserSchema, session: T_Session):
     user_db = await register_new_user_in_db(session=session, user=user)
     return user_db
@@ -25,10 +31,17 @@ async def create_user(user: UserSchema, session: T_Session):
 @router.get('/', response_model=UsersList, status_code=HTTPStatus.OK)
 async def get_all_users(session: T_Session, user: CurrentUser):
     users_db = await get_users_lis_from_db(session=session)
-    return {'users':users_db}
+    return {'users': users_db}
 
 
-@router.put('/{user_id}', response_model=UserPublic)
+@router.put(
+    '/{user_id}',
+    response_model=UserPublic,
+    responses={
+        HTTPStatus.FORBIDDEN: response_model,
+        HTTPStatus.UNAUTHORIZED: response_model,
+    },
+)
 async def update_user(
     user_id: int,
     user: UserSchema,
@@ -41,7 +54,14 @@ async def update_user(
     return user_updated
 
 
-@router.delete('/{user_id}', response_model=Message)
+@router.delete(
+    '/{user_id}',
+    response_model=Message,
+    responses={
+        HTTPStatus.FORBIDDEN: response_model,
+        HTTPStatus.UNAUTHORIZED: response_model,
+    },
+)
 async def delete_user(
     user_id: int,
     session: T_Session,
