@@ -28,6 +28,13 @@ class SuperUserRequestUpdate(UserBase):
     is_verified: bool = False
 
 
+class UserRequestUpdate(UserBase):
+    username: str | None = None
+    email: EmailStr | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+
+
 class UserResponse(UserBase):
     id: int
     is_superuser: bool

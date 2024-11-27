@@ -3,7 +3,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.security import get_password_hash
 from src.models import User
-from src.schemas.users import SuperUserRequestCreate, SuperUserRequestUpdate
+from src.schemas.users import (
+    SuperUserRequestCreate,
+    SuperUserRequestUpdate,
+    UserRequestCreate,
+    UserRequestUpdate,
+)
 
 
 async def get_user(
@@ -59,7 +64,7 @@ async def get_users_list(
 
 
 async def add_user(
-    session: AsyncSession, user: SuperUserRequestCreate
+    session: AsyncSession, user: SuperUserRequestCreate | UserRequestCreate
 ) -> User:
     """
     Add a new user to the database.
@@ -86,7 +91,7 @@ async def add_user(
 
 async def update_user_info(
     session: AsyncSession,
-    user_info: SuperUserRequestUpdate,
+    user_info: SuperUserRequestUpdate | UserRequestUpdate,
     user_to_update: User,
 ) -> User:
     """
@@ -106,6 +111,32 @@ async def update_user_info(
 
     for key, value in user_info.model_dump(exclude_unset=True).items():
         setattr(user_to_update, key, value)
+
+    session.add(user_to_update)
+    await session.commit()
+    await session.refresh(user_to_update)
+
+    return user_to_update
+
+
+async def change_password(
+    session: AsyncSession, user_to_update: User, password: str
+) -> User:
+    """
+    Update the password of an existing user.
+
+    Hashes the provided password and updates the `password_hash` field of the
+    user identified by `user_to_update`. The change is then committed to the
+    database.
+
+    :param session: The asynchronous database session used for the operation.
+    :param user_to_update: The `User` object whose password is being updated.
+    :param password: The new password to set for the user.
+    :return: The updated `User` object with the new password hash.
+    """
+
+    hashed_password = get_password_hash(password)
+    user_to_update.password_hash = hashed_password
 
     session.add(user_to_update)
     await session.commit()

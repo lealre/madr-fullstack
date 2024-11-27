@@ -10,7 +10,6 @@ from src.api.dependencies import (
 from src.core.security import (
     create_url_safe_token,
     decode_url_safe_token,
-    get_password_hash,
 )
 from src.email.email import create_email_message, email
 from src.schemas.base import Email, Message
@@ -20,11 +19,15 @@ from src.schemas.users import (
     SuperUserRequestUpdate,
     UserListResponse,
     UserRequestCreate,
+    UserRequestUpdate,
     UserResponse,
 )
 from src.services import users_service
 
 router = APIRouter()
+
+
+# -- Superuser routes --
 
 
 @router.get(
@@ -42,6 +45,28 @@ async def read_users(session: SessionDep, limit: int = 100, offset: int = 0):
     )
 
     return {'users': users}
+
+
+@router.get(
+    '/{user_id}',
+    response_model=UserResponse,
+    dependencies=[Depends(get_current_active_superuser)],
+)
+async def get_user_by_id(session: SessionDep, user_id: int):
+    """
+    Superuser - Get account by ID.
+    """
+
+    user_db = await users_service.get_user_by_id(
+        session=session, user_id=user_id
+    )
+
+    if not user_db:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail='User not found.'
+        )
+
+    return user_db
 
 
 @router.post(
@@ -74,36 +99,6 @@ async def create_user(session: SessionDep, user_in: SuperUserRequestCreate):
     new_user = await users_service.add_user(session=session, user=user_in)
 
     return new_user
-
-
-@router.delete(
-    '/{user_id}',
-    status_code=HTTPStatus.OK,
-    dependencies=[Depends(get_current_active_superuser)],
-)
-async def delete_user(
-    session: SessionDep, user_id: int, current_user: CurrentUser
-):
-    """
-    Superuser - Delete a user account by ID.
-    """
-
-    user = await users_service.get_user_by_id(session=session, user_id=user_id)
-
-    if not user:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='User not found.'
-        )
-    if user == current_user:
-        raise HTTPException(
-            status_code=403,
-            detail='Super users are not allowed to delete themselves',
-        )
-
-    await session.delete(user)
-    await session.commit()
-
-    return {'message': 'User deleted.'}
 
 
 @router.patch(
@@ -150,7 +145,41 @@ async def update_user_info(
     return user_updated
 
 
-# Users routes
+@router.delete(
+    '/{user_id}',
+    status_code=HTTPStatus.OK,
+    dependencies=[Depends(get_current_active_superuser)],
+)
+async def delete_user(
+    session: SessionDep, user_id: int, current_user: CurrentUser
+):
+    """
+    Superuser - Delete a user account by ID.
+    """
+
+    user_to_delete = await users_service.get_user_by_id(
+        session=session, user_id=user_id
+    )
+
+    if not user_to_delete:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail='User not found.'
+        )
+    if user_to_delete.id == current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail='Super users are not allowed to delete themselves',
+        )
+
+    await session.delete(user_to_delete)
+    await session.commit()
+
+    return {'message': 'User deleted.'}
+
+
+# -- Users routes --
+
+
 @router.post('/singup', response_model=UserResponse)
 async def singup(session: SessionDep, user_in: UserRequestCreate):
     """
@@ -178,10 +207,170 @@ async def singup(session: SessionDep, user_in: UserRequestCreate):
     return new_user
 
 
-# User - verify account through email
-@router.get('/check-verification-status', response_model=Message)
-async def is_verified(current_user: CurrentUser):
-    if current_user.is_verified:
+@router.get('/me/{user_id}', response_model=UserResponse)
+async def get_user_info_me(
+    session: SessionDep, user_id: int, current_user: CurrentUser
+):
+    """
+    User - Get own account details by ID.
+    """
+
+    user_db = await users_service.get_user_by_id(
+        session=session, user_id=user_id
+    )
+
+    if not user_db:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail='User not found.'
+        )
+
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=HTTPStatus.FORBIDDEN, detail='Not enough permissions.'
+        )
+
+    return user_db
+
+
+@router.patch('/me/{user_id}', response_model=UserResponse)
+async def update_user_info_me(
+    session: SessionDep,
+    user_id: int,
+    user_in: UserRequestUpdate,
+    current_user: CurrentUser,
+):
+    """
+    User - Update own account information by ID.
+    """
+
+    user_to_update = await users_service.get_user_by_id(
+        session=session, user_id=user_id
+    )
+
+    if not user_to_update:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail='User not found.'
+        )
+
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=HTTPStatus.FORBIDDEN, detail='Not enough permissions.'
+        )
+
+    user_db = await users_service.get_user(
+        session=session, username=user_in.username, user_email=user_in.email
+    )
+
+    if user_db:
+        if user_db.username == user_in.username:
+            raise HTTPException(
+                status_code=HTTPStatus.BAD_REQUEST,
+                detail='Username already exists.',
+            )
+        if user_db.email == user_in.email:
+            raise HTTPException(
+                status_code=HTTPStatus.BAD_REQUEST,
+                detail='Email already exists.',
+            )
+
+    user_updated = await users_service.update_user_info(
+        session=session, user_info=user_in, user_to_update=user_to_update
+    )
+
+    return user_updated
+
+
+@router.delete('/me/{user_id}', response_model=UserResponse)
+async def delete_user_me(
+    session: SessionDep, user_id: int, current_user: CurrentUser
+):
+    """
+    User - Delete own account.
+    """
+
+    user_to_delete = await users_service.get_user_by_id(
+        session=session, user_id=user_id
+    )
+
+    if not user_to_delete:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail='User not found.'
+        )
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=HTTPStatus.FORBIDDEN, detail='Not enough permissions.'
+        )
+
+    await session.delete(user_to_delete)
+    await session.commit()
+
+    return {'message': 'User deleted.'}
+
+
+@router.patch('/me/change-password/{user_id}', response_model=Message)
+async def update_password_me(
+    session: SessionDep,
+    user_id: int,
+    passwords: PasswordChange,
+    current_user: CurrentUser,
+):
+    """
+    User - Change own password
+    """
+
+    user_to_update = await users_service.get_user_by_id(
+        session=session, user_id=user_id
+    )
+
+    if not user_to_update:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail='User not found.'
+        )
+
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=HTTPStatus.FORBIDDEN, detail='Not enough permissions.'
+        )
+
+    if passwords.password != passwords.password_confirmation:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST, detail='Passwords dont match.'
+        )
+
+    await users_service.change_password(
+        session=session,
+        user_to_update=current_user,
+        password=passwords.password,
+    )
+
+    return {'message': 'Password has been changed!'}
+
+
+# -- Email verification routes --
+
+
+@router.get('/check-verification-status/{user_id}', response_model=Message)
+async def is_verified(
+    session: SessionDep, current_user: CurrentUser, user_id: int
+):
+    """
+    User - Check if own account is verified.
+    """
+
+    user_db = await users_service.get_user_by_id(
+        session=session, user_id=user_id
+    )
+
+    if not user_db:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail='User not found.'
+        )
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=HTTPStatus.FORBIDDEN, detail='Not enough permissions.'
+        )
+
+    if user_db.is_verified:
         return {'message': 'User is already verified.'}
 
     return {'message': 'User has not been verified yet.'}
@@ -247,7 +436,9 @@ async def test_email(emails: Email):
     return {'message': 'Email sent'}
 
 
-# User - change password through email
+# -- Email recovery access routes --
+
+
 @router.get('/recover-access')
 async def recover_access(current_user: CurrentUser):
     email_token = create_url_safe_token(data={'email': current_user.email})
@@ -290,17 +481,18 @@ async def change_password_by_email(
     if not user_email or user_email != current_user.email:
         raise HTTPException(
             status_code=HTTPStatus.FORBIDDEN,
-            detail='Could not proceed with password change.',
+            detail='Password change could not be completed.',
         )
 
     if passwords.password != passwords.password_confirmation:
         raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST, detail='Passwords doesnt match'
+            status_code=HTTPStatus.BAD_REQUEST, detail='Passwords dont match.'
         )
 
-    hashed_password = get_password_hash(passwords.password)
-    current_user.password_hash = hashed_password
-    session.add(current_user)
-    await session.commit()
+    await users_service.change_password(
+        session=session,
+        user_to_update=current_user,
+        password=passwords.password,
+    )
 
-    return {'message': 'Password changed!'}
+    return {'message': 'Password has been changed!'}
