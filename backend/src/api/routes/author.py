@@ -2,8 +2,7 @@ from http import HTTPStatus
 
 from fastapi import APIRouter
 
-from src.core.database import T_Session
-from src.core.security import CurrentUser
+from src.api.dependencies import CurrentUser, SessionDep
 from src.schemas.authors import AuthorList, AuthorPublic, AuthorSchema
 from src.schemas.base import Message
 from src.schemas.responses import response_model
@@ -15,7 +14,7 @@ from src.services.author_service import (
     update_author_in_db,
 )
 
-router = APIRouter(prefix='/author', tags=['author'])
+router = APIRouter()
 
 
 @router.post(
@@ -28,7 +27,7 @@ router = APIRouter(prefix='/author', tags=['author'])
     },
 )
 async def add_author(
-    author: AuthorSchema, session: T_Session, user: CurrentUser
+    author: AuthorSchema, session: SessionDep, user: CurrentUser
 ):
     author_db = await register_new_author_in_db(session=session, author=author)
     return author_db
@@ -42,7 +41,9 @@ async def add_author(
         HTTPStatus.UNAUTHORIZED: response_model,
     },
 )
-async def delete_author(author_id: int, session: T_Session, user: CurrentUser):
+async def delete_author(
+    author_id: int, session: SessionDep, user: CurrentUser
+):
     await delete_author_from_db(session=session, author_id=author_id)
     return {'message': 'Author deleted from MADR.'}
 
@@ -56,7 +57,10 @@ async def delete_author(author_id: int, session: T_Session, user: CurrentUser):
     },
 )
 async def update_author(
-    author_id: int, author: AuthorSchema, session: T_Session, user: CurrentUser
+    author_id: int,
+    author: AuthorSchema,
+    session: SessionDep,
+    user: CurrentUser,
 ):
     author_db = await update_author_in_db(
         session=session, author_id=author_id, author=author
@@ -72,7 +76,7 @@ async def update_author(
         HTTPStatus.UNAUTHORIZED: response_model,
     },
 )
-async def get_author_by_id(author_id: int, session: T_Session):
+async def get_author_by_id(author_id: int, session: SessionDep):
     author_db = await get_author_by_id_from_db(
         session=session, author_id=author_id
     )
@@ -81,7 +85,7 @@ async def get_author_by_id(author_id: int, session: T_Session):
 
 @router.get('/', response_model=AuthorList)
 async def get_author_with_name_like(
-    session: T_Session,
+    session: SessionDep,
     name: str | None = None,
     limit: int = 20,
     offset: int = 0,

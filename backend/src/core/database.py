@@ -1,10 +1,10 @@
-from typing import Annotated
-
-from fastapi import Depends
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
+from src.core.security import get_password_hash
 from src.core.settings import settings
+from src.models import User
 
 engine = create_async_engine(settings.DATABASE_URL, future=True, echo=True)
 
@@ -17,9 +17,26 @@ AsyncSessionLocal = sessionmaker(
 )
 
 
-async def get_session():  # pragma: no cover
-    async with AsyncSessionLocal() as session:
-        yield session
+async def init_db(session: AsyncSession) -> None:
+    user = await session.scalar(
+        select(User).where(User.email == settings.FIRST_SUPERUSER_EMAIL)
+    )
 
+    if not user:
+        hashed_password = get_password_hash(settings.FIRST_SUPERUSER_PASSWORD)
 
-T_Session = Annotated[AsyncSession, Depends(get_session)]
+        user_db = User(
+            username=settings.FIRST_SUPERUSER_USERNAME,
+            email=settings.FIRST_SUPERUSER_EMAIL,
+            password_hash=hashed_password,
+            is_superuser=True,
+            is_verified=True,
+        )
+
+        session.add(user_db)
+        await session.commit()
+
+        print('Superuser created')
+        return
+
+    print('Superuser with these credentials already exists')

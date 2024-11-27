@@ -1,21 +1,32 @@
 from datetime import datetime, timedelta
-from http import HTTPStatus
-from typing import Annotated
 
-from fastapi import Depends, HTTPException
+from authlib.integrations.starlette_client import OAuth
 from fastapi.security import OAuth2PasswordBearer
-from jwt import ExpiredSignatureError, PyJWTError, decode, encode
+from itsdangerous import URLSafeTimedSerializer
+from jwt import encode
 from pwdlib import PasswordHash
-from sqlalchemy import select
+from starlette.config import Config
 from zoneinfo import ZoneInfo
 
-from src.core.database import T_Session
-from src.core.settings import Settings
-from src.models import User
+from src.core.settings import settings
 
 pwd_context = PasswordHash.recommended()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/token')
-settings = Settings()
+
+config_data = {
+    'GOOGLE_CLIENT_ID': settings.GOOGLE_CLIENT_ID,
+    'GOOGLE_CLIENT_SECRET': settings.GOOGLE_CLIENT_SECRET,
+}
+
+starlette_config = Config(environ=config_data)
+
+oauth = OAuth(starlette_config)
+
+oauth.register(
+    name='google',
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_kwargs={'scope': 'openid email profile'},
+)
 
 
 def get_password_hash(password: str):
@@ -40,33 +51,19 @@ def create_access_token(data: dict):
     return encoded_jwt
 
 
-async def get_current_user(
-    session: T_Session, token: str = Depends(oauth2_scheme)
-):
-    credentials_exception = HTTPException(
-        status_code=HTTPStatus.UNAUTHORIZED,
-        detail='Could not validate credentials.',
-        headers={'WWW-Authenticate': 'Bearer'},
-    )
+serializer = URLSafeTimedSerializer(
+    secret_key=settings.SECRET_KEY, salt='email-configuration'
+)
 
+
+def create_url_safe_token(data: dict):
+    token = serializer.dumps(data)
+    return token
+
+
+def decode_url_safe_token(token: str):
     try:
-        payload = decode(
-            token, settings.SECRET_KEY, algorithms=settings.ALGORITHM
-        )
-        username = payload.get('sub')
-        if not username:
-            raise credentials_exception
-    except ExpiredSignatureError:
-        raise credentials_exception
-    except PyJWTError:
-        raise credentials_exception
-
-    user_db = await session.scalar(select(User).where(User.email == username))
-
-    if not user_db:
-        raise credentials_exception
-
-    return user_db
-
-
-CurrentUser = Annotated[User, Depends(get_current_user)]
+        token_data = serializer.loads(token)
+        return token_data
+    except Exception:
+        return

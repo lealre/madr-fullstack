@@ -1,16 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 
-from src.routers import auth, author, books, users
+from src.api.main import api_router
+from src.core.settings import settings
 
 app = FastAPI()
 
-app.include_router(users.router)
-app.include_router(auth.router)
-app.include_router(books.router)
-app.include_router(author.router)
-
-origins = ['http://localhost:5173']
+origins = ['*']  # ['http://localhost:5173']
 
 app.add_middleware(
     CORSMiddleware,
@@ -19,6 +16,10 @@ app.add_middleware(
     allow_methods=['*'],
     allow_headers=['*'],
 )
+
+app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
+
+app.include_router(api_router)
 
 
 @app.get('/')

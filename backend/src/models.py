@@ -12,8 +12,14 @@ class User:
 
     id: Mapped[int] = mapped_column(init=False, primary_key=True)
     username: Mapped[str] = mapped_column(unique=True)
-    password: Mapped[str]
+    password_hash: Mapped[str]
     email: Mapped[str] = mapped_column(unique=True)
+    first_name: Mapped[str] = mapped_column(default=None, nullable=True)
+    last_name: Mapped[str] = mapped_column(default=None, nullable=True)
+    is_superuser: Mapped[bool] = mapped_column(default=False)
+    is_active: Mapped[bool] = mapped_column(default=True)
+    is_verified: Mapped[bool] = mapped_column(default=False)
+    google_sub: Mapped[str] = mapped_column(default=None, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         init=False, server_default=func.now()
     )

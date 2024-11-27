@@ -2,8 +2,7 @@ from http import HTTPStatus
 
 from fastapi import APIRouter
 
-from src.core.database import T_Session
-from src.core.security import CurrentUser
+from src.api.dependencies import CurrentUser, SessionDep
 from src.schemas.base import Message
 from src.schemas.books import BookList, BookPublic, BookSchema, BookUpdate
 from src.schemas.responses import response_model
@@ -15,7 +14,7 @@ from src.services.book_service import (
     update_book_in_db,
 )
 
-router = APIRouter(prefix='/book', tags=['book'])
+router = APIRouter()
 
 
 @router.post(
@@ -27,7 +26,7 @@ router = APIRouter(prefix='/book', tags=['book'])
         HTTPStatus.UNAUTHORIZED: response_model,
     },
 )
-async def add_book(book: BookSchema, session: T_Session, user: CurrentUser):
+async def add_book(book: BookSchema, session: SessionDep, user: CurrentUser):
     db_book = await register_new_book_in_db(session=session, book=book)
     return db_book
 
@@ -40,7 +39,7 @@ async def add_book(book: BookSchema, session: T_Session, user: CurrentUser):
         HTTPStatus.UNAUTHORIZED: response_model,
     },
 )
-async def delete_book(book_id: int, session: T_Session, user: CurrentUser):
+async def delete_book(book_id: int, session: SessionDep, user: CurrentUser):
     await delete_book_from_db(session=session, book_id=book_id)
     return {'message': 'Book deleted from MADR.'}
 
@@ -54,7 +53,7 @@ async def delete_book(book_id: int, session: T_Session, user: CurrentUser):
     },
 )
 async def update_book(
-    book_id: int, book: BookUpdate, session: T_Session, user: CurrentUser
+    book_id: int, book: BookUpdate, session: SessionDep, user: CurrentUser
 ):
     db_book = await update_book_in_db(
         session=session, book=book, book_id=book_id
@@ -70,14 +69,14 @@ async def update_book(
         HTTPStatus.UNAUTHORIZED: response_model,
     },
 )
-async def get_book_by_id(book_id: int, session: T_Session):
+async def get_book_by_id(book_id: int, session: SessionDep):
     db_book = await get_book_by_id_from_db(session=session, book_id=book_id)
     return db_book
 
 
 @router.get('/', response_model=BookList)
 async def get_book_like(
-    session: T_Session,
+    session: SessionDep,
     name: str | None = None,
     year: int | None = None,
     limit: int = 20,
