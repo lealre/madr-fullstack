@@ -3,10 +3,10 @@ from http import HTTPStatus
 from tests.conftest import BookFactory
 
 
-async def test_add_book(async_client, token, author):
+async def test_add_book(async_client, user_token, author):
     response = await async_client.post(
         '/book',
-        headers={'Authorization': f'Bearer {token}'},
+        headers={'Authorization': f'Bearer {user_token}'},
         json={'year': 2024, 'title': 'book title', 'author_id': 1},
     )
 
@@ -19,10 +19,10 @@ async def test_add_book(async_client, token, author):
     }
 
 
-async def test_add_book_already_exists(async_client, token, book):
+async def test_add_book_already_exists(async_client, user_token, book):
     response = await async_client.post(
         '/book',
-        headers={'Authorization': f'Bearer {token}'},
+        headers={'Authorization': f'Bearer {user_token}'},
         json={'year': 2024, 'title': book.title, 'author_id': 1},
     )
 
@@ -30,11 +30,11 @@ async def test_add_book_already_exists(async_client, token, book):
     assert response.json() == {'detail': f'{book.title} already in MADR.'}
 
 
-async def test_add_book_author_id_not_found(async_client, token):
+async def test_add_book_author_id_not_found(async_client, user_token):
     book = BookFactory()
     response = await async_client.post(
         '/book',
-        headers={'Authorization': f'Bearer {token}'},
+        headers={'Authorization': f'Bearer {user_token}'},
         json={
             'year': book.year,
             'title': book.title,
@@ -58,11 +58,13 @@ async def test_add_book_not_authenticated(async_client):
     assert response.json() == {'detail': 'Not authenticated'}
 
 
-async def test_book_title_sanitization_schema(async_client, token, author):
+async def test_book_title_sanitization_schema(
+    async_client, user_token, author
+):
     expected_title = 'a title to correct'
     response = await async_client.post(
         '/book',
-        headers={'Authorization': f'Bearer {token}'},
+        headers={'Authorization': f'Bearer {user_token}'},
         json={
             'year': 2024,
             'title': ' A   TitLE  to correct     ',
@@ -73,18 +75,18 @@ async def test_book_title_sanitization_schema(async_client, token, author):
     assert response.json()['title'] == expected_title
 
 
-async def test_delete_book(async_client, token, book):
+async def test_delete_book(async_client, user_token, book):
     response = await async_client.delete(
-        f'/book/{book.id}', headers={'Authorization': f'Bearer {token}'}
+        f'/book/{book.id}', headers={'Authorization': f'Bearer {user_token}'}
     )
 
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {'message': 'Book deleted from MADR.'}
 
 
-async def test_delete_book_not_found(async_client, token, book):
+async def test_delete_book_not_found(async_client, user_token, book):
     response = await async_client.delete(
-        f'/book/{10}', headers={'Authorization': f'Bearer {token}'}
+        f'/book/{10}', headers={'Authorization': f'Bearer {user_token}'}
     )
 
     assert response.status_code == HTTPStatus.NOT_FOUND
@@ -98,7 +100,7 @@ async def test_delete_book_not_authenticated(async_client, book):
     assert response.json() == {'detail': 'Not authenticated'}
 
 
-async def test_patch_book(async_session, async_client, token, author):
+async def test_patch_book(async_session, async_client, user_token, author):
     input_year = 2000
     book = BookFactory(year=input_year)
 
@@ -111,7 +113,7 @@ async def test_patch_book(async_session, async_client, token, author):
 
     response = await async_client.patch(
         f'/book/{book.id}',
-        headers={'Authorization': f'Bearer {token}'},
+        headers={'Authorization': f'Bearer {user_token}'},
         json={'year': year_expected},
     )
 
@@ -124,10 +126,10 @@ async def test_patch_book(async_session, async_client, token, author):
     }
 
 
-async def test_patch_book_not_found(async_client, token, book):
+async def test_patch_book_not_found(async_client, user_token, book):
     response = await async_client.patch(
         f'/book/{10}',
-        headers={'Authorization': f'Bearer {token}'},
+        headers={'Authorization': f'Bearer {user_token}'},
         json={'year': 2000},
     )
 

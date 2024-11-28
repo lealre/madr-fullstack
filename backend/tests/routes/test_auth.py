@@ -62,9 +62,10 @@ async def test_token_expired_after_time(async_client, user):
         assert response.json() == {'detail': 'Could not validate credentials.'}
 
 
-async def test_refresh_token(async_client, token, user):
+async def test_refresh_token(async_client, user_token, user):
     response = await async_client.post(
-        '/auth/refresh_token', headers={'Authorization': f'Bearer {token}'}
+        '/auth/refresh_token',
+        headers={'Authorization': f'Bearer {user_token}'},
     )
 
     data = response.json()
@@ -93,16 +94,18 @@ async def test_token_expired_dont_refresh(async_client, user):
         assert response.json() == {'detail': 'Could not validate credentials.'}
 
 
-async def test_user_not_found_get_current_user(async_client, user, token):
+async def test_user_not_found_get_current_user(async_client, user, user_token):
     response = await async_client.delete(
-        f'/users/me/{user.id}', headers={'Authorization': f'Bearer {token}'}
+        f'/users/me/{user.id}',
+        headers={'Authorization': f'Bearer {user_token}'},
     )
 
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {'message': 'User deleted.'}
 
     response = await async_client.post(
-        '/auth/refresh_token', headers={'Authorization': f'Bearer {token}'}
+        '/auth/refresh_token',
+        headers={'Authorization': f'Bearer {user_token}'},
     )
 
     assert response.status_code == HTTPStatus.UNAUTHORIZED

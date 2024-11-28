@@ -3,10 +3,10 @@ from http import HTTPStatus
 from tests.conftest import AuthorFactory
 
 
-async def test_add_author(async_client, token):
+async def test_add_author(async_client, user_token):
     response = await async_client.post(
         '/author',
-        headers={'Authorization': f'Bearer {token}'},
+        headers={'Authorization': f'Bearer {user_token}'},
         json={'name': 'test-name'},
     )
 
@@ -14,10 +14,10 @@ async def test_add_author(async_client, token):
     assert response.json() == {'id': 1, 'name': 'test-name'}
 
 
-async def test_add_author_already_exists(async_client, token, author):
+async def test_add_author_already_exists(async_client, user_token, author):
     response = await async_client.post(
         '/author',
-        headers={'Authorization': f'Bearer {token}'},
+        headers={'Authorization': f'Bearer {user_token}'},
         json={'name': author.name},
     )
 
@@ -35,31 +35,31 @@ async def test_add_author_not_authenticated(async_client):
     assert response.json() == {'detail': 'Not authenticated'}
 
 
-async def test_author_name_sanitization_schema(async_client, token):
+async def test_author_name_sanitization_schema(async_client, user_token):
     expected_name = 'a name to correct'
     response = await async_client.post(
         '/author',
-        headers={'Authorization': f'Bearer {token}'},
+        headers={'Authorization': f'Bearer {user_token}'},
         json={'name': ' A   NAmE to correct     '},
     )
 
     assert response.json()['name'] == expected_name
 
 
-async def test_delete_author(async_client, token, author):
+async def test_delete_author(async_client, user_token, author):
     response = await async_client.delete(
         f'/author/{author.id}',
-        headers={'Authorization': f'Bearer {token}'},
+        headers={'Authorization': f'Bearer {user_token}'},
     )
 
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {'message': 'Author deleted from MADR.'}
 
 
-async def test_delete_author_not_found(async_client, token, author):
+async def test_delete_author_not_found(async_client, user_token, author):
     response = await async_client.delete(
         '/author/555',
-        headers={'Authorization': f'Bearer {token}'},
+        headers={'Authorization': f'Bearer {user_token}'},
     )
 
     assert response.status_code == HTTPStatus.NOT_FOUND
@@ -73,11 +73,11 @@ async def test_delete_author_not_authenticated(async_client, author):
     assert response.json() == {'detail': 'Not authenticated'}
 
 
-async def test_update_author(async_client, token, author):
+async def test_update_author(async_client, user_token, author):
     expected_name = 'name updated'
     response = await async_client.patch(
         f'/author/{author.id}',
-        headers={'Authorization': f'Bearer {token}'},
+        headers={'Authorization': f'Bearer {user_token}'},
         json={'name': expected_name},
     )
 
@@ -85,10 +85,10 @@ async def test_update_author(async_client, token, author):
     assert response.json() == {'id': author.id, 'name': expected_name}
 
 
-async def test_update_author_not_found(async_client, token, author):
+async def test_update_author_not_found(async_client, user_token, author):
     response = await async_client.patch(
         '/author/555',
-        headers={'Authorization': f'Bearer {token}'},
+        headers={'Authorization': f'Bearer {user_token}'},
         json={'name': 'update'},
     )
 

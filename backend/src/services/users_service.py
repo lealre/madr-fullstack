@@ -12,7 +12,7 @@ from src.schemas.users import (
 
 
 async def get_user(
-    session: AsyncSession, user_email: str, username: str
+    session: AsyncSession, user_email: str | None, username: str | None
 ) -> User | None:
     """
     Retrieve a user from the database by username or email.
@@ -31,7 +31,7 @@ async def get_user(
     return user_db
 
 
-async def get_user_by_id(session: AsyncSession, user_id: int) -> User:
+async def get_user_by_id(session: AsyncSession, user_id: int) -> User | None:
     """
     Retrieve a user from the database by their ID.
 
@@ -59,8 +59,9 @@ async def get_users_list(
     """
 
     users_db = await session.scalars(select(User).offset(offset).limit(limit))
+    all_users = list(users_db.all())
 
-    return users_db.all()
+    return all_users
 
 
 async def add_user(

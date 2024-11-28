@@ -9,6 +9,7 @@ from testcontainers.postgres import PostgresContainer
 from src.api.dependencies import get_session
 from src.app import app
 from src.core.security import get_password_hash
+from src.core.settings import settings
 from src.models import Author, Book, User, table_registry
 
 
@@ -19,6 +20,7 @@ class UserFactory(factory.Factory):
     username = factory.Sequence(lambda n: f'test_name_{n}')
     email = factory.LazyAttribute(lambda user: f'{user.username}@test.com')
     password_hash = factory.LazyAttribute(lambda user: f'{user.username}_pass')
+    is_superuser = False
 
 
 class BookFactory(factory.Factory):
@@ -59,12 +61,12 @@ async def async_session(postgres_container):
 
     async_session = sessionmaker(
         autoflush=False,
-        bind=async_engine,
+        bind=async_engine,  # type: ignore
         class_=AsyncSession,
         expire_on_commit=False,
-    )
+    )  # type: ignore
 
-    async with async_session() as as_session:
+    async with async_session() as as_session:  # type: ignore
         yield as_session
 
 
@@ -82,7 +84,19 @@ async def async_client(async_session):
 
 
 @pytest_asyncio.fixture
-async def token(async_client, user):
+async def superuser_token(async_client, superuser):
+    response = await async_client.post(
+        '/auth/token',
+        data={
+            'username': superuser.email,
+            'password': superuser.clean_password,
+        },
+    )
+    return response.json()['access_token']
+
+
+@pytest_asyncio.fixture
+async def user_token(async_client, user):
     response = await async_client.post(
         '/auth/token',
         data={'username': user.email, 'password': user.clean_password},
@@ -91,7 +105,27 @@ async def token(async_client, user):
 
 
 @pytest_asyncio.fixture
-async def user(async_session) -> User:
+async def superuser(async_session):
+    pwd = settings.FIRST_SUPERUSER_PASSWORD
+
+    superuser = UserFactory(
+        username=settings.FIRST_SUPERUSER_USERNAME,
+        email=settings.FIRST_SUPERUSER_EMAIL,
+        password_hash=get_password_hash(pwd),
+        is_superuser=True,
+    )
+
+    async_session.add(superuser)
+    await async_session.commit()
+    await async_session.refresh(superuser)
+
+    superuser.clean_password = pwd  # Monkey Patch
+
+    return superuser
+
+
+@pytest_asyncio.fixture
+async def user(async_session):
     pwd = 'testest'
 
     user = UserFactory(password_hash=get_password_hash(pwd))

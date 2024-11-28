@@ -180,7 +180,9 @@ async def delete_user(
 # -- Users routes --
 
 
-@router.post('/singup', response_model=UserResponse)
+@router.post(
+    '/singup', status_code=HTTPStatus.CREATED, response_model=UserResponse
+)
 async def singup(session: SessionDep, user_in: UserRequestCreate):
     """
     User - Create an account.
@@ -208,28 +210,17 @@ async def singup(session: SessionDep, user_in: UserRequestCreate):
 
 
 @router.get('/me/{user_id}', response_model=UserResponse)
-async def get_user_info_me(
-    session: SessionDep, user_id: int, current_user: CurrentUser
-):
+async def get_user_info_me(user_id: int, current_user: CurrentUser):
     """
     User - Get own account details by ID.
     """
-
-    user_db = await users_service.get_user_by_id(
-        session=session, user_id=user_id
-    )
-
-    if not user_db:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='User not found.'
-        )
 
     if current_user.id != user_id:
         raise HTTPException(
             status_code=HTTPStatus.FORBIDDEN, detail='Not enough permissions.'
         )
 
-    return user_db
+    return current_user
 
 
 @router.patch('/me/{user_id}', response_model=UserResponse)
@@ -242,15 +233,6 @@ async def update_user_info_me(
     """
     User - Update own account information by ID.
     """
-
-    user_to_update = await users_service.get_user_by_id(
-        session=session, user_id=user_id
-    )
-
-    if not user_to_update:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='User not found.'
-        )
 
     if current_user.id != user_id:
         raise HTTPException(
@@ -274,13 +256,13 @@ async def update_user_info_me(
             )
 
     user_updated = await users_service.update_user_info(
-        session=session, user_info=user_in, user_to_update=user_to_update
+        session=session, user_info=user_in, user_to_update=current_user
     )
 
     return user_updated
 
 
-@router.delete('/me/{user_id}', response_model=UserResponse)
+@router.delete('/me/{user_id}', response_model=Message)
 async def delete_user_me(
     session: SessionDep, user_id: int, current_user: CurrentUser
 ):
@@ -288,20 +270,12 @@ async def delete_user_me(
     User - Delete own account.
     """
 
-    user_to_delete = await users_service.get_user_by_id(
-        session=session, user_id=user_id
-    )
-
-    if not user_to_delete:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='User not found.'
-        )
     if current_user.id != user_id:
         raise HTTPException(
             status_code=HTTPStatus.FORBIDDEN, detail='Not enough permissions.'
         )
 
-    await session.delete(user_to_delete)
+    await session.delete(current_user)
     await session.commit()
 
     return {'message': 'User deleted.'}
@@ -317,15 +291,6 @@ async def update_password_me(
     """
     User - Change own password
     """
-
-    user_to_update = await users_service.get_user_by_id(
-        session=session, user_id=user_id
-    )
-
-    if not user_to_update:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='User not found.'
-        )
 
     if current_user.id != user_id:
         raise HTTPException(
@@ -426,10 +391,12 @@ async def verify(session: SessionDep, current_user: CurrentUser, token: str):
 
 @router.post('/test-email', response_model=Message)
 async def test_email(emails: Email):
-    emails = emails.addresses
+    emails = emails.addresses  # type: ignore
     html = '<h1>Testing Email</h1>'
     message = create_email_message(
-        recipients=emails, subject='Welcome to the test', body=html
+        recipients=emails,  # type: ignore
+        subject='Welcome to the test',
+        body=html,  # type: ignore
     )
     await email.send_message(message)
 

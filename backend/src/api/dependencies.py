@@ -14,8 +14,8 @@ from src.models import User
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/token')
 
 
-async def get_session():
-    async with AsyncSessionLocal() as session:
+async def get_session():  # pragma: no cover
+    async with AsyncSessionLocal() as session: # type: ignore
         yield session
 
 
