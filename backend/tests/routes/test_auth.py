@@ -48,8 +48,8 @@ async def test_token_expired_after_time(async_client, user):
         token = response.json()['access_token']
 
     with freeze_time('2024-01-01 13:01:00'):
-        response = await async_client.put(
-            f'/users/{user.id}',
+        response = await async_client.patch(
+            f'/users/me/{user.id}',
             headers={'Authorization': f'Bearer {token}'},
             json={
                 'username': 'update',
@@ -95,11 +95,11 @@ async def test_token_expired_dont_refresh(async_client, user):
 
 async def test_user_not_found_get_current_user(async_client, user, token):
     response = await async_client.delete(
-        f'/users/{user.id}', headers={'Authorization': f'Bearer {token}'}
+        f'/users/me/{user.id}', headers={'Authorization': f'Bearer {token}'}
     )
 
     assert response.status_code == HTTPStatus.OK
-    assert response.json() == {'message': 'User Deleted.'}
+    assert response.json() == {'message': 'User deleted.'}
 
     response = await async_client.post(
         '/auth/refresh_token', headers={'Authorization': f'Bearer {token}'}

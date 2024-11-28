@@ -6,8 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from testcontainers.postgres import PostgresContainer
 
+from src.api.dependencies import get_session
 from src.app import app
-from src.core.database import get_session
 from src.core.security import get_password_hash
 from src.models import Author, Book, User, table_registry
 
@@ -18,7 +18,7 @@ class UserFactory(factory.Factory):
 
     username = factory.Sequence(lambda n: f'test_name_{n}')
     email = factory.LazyAttribute(lambda user: f'{user.username}@test.com')
-    password = factory.LazyAttribute(lambda user: f'{user.username}_pass')
+    password_hash = factory.LazyAttribute(lambda user: f'{user.username}_pass')
 
 
 class BookFactory(factory.Factory):
@@ -51,9 +51,7 @@ async def async_session(postgres_container):
     async_db_url = postgres_container.get_connection_url().replace(
         'postgresql://', 'postgresql+asyncpg://'
     )
-    async_engine = create_async_engine(
-        async_db_url, pool_pre_ping=True, echo=True
-    )
+    async_engine = create_async_engine(async_db_url, pool_pre_ping=True)
 
     async with async_engine.begin() as conn:
         await conn.run_sync(table_registry.metadata.drop_all)
@@ -93,10 +91,10 @@ async def token(async_client, user):
 
 
 @pytest_asyncio.fixture
-async def user(async_session):
+async def user(async_session) -> User:
     pwd = 'testest'
 
-    user = UserFactory(password=get_password_hash(pwd))
+    user = UserFactory(password_hash=get_password_hash(pwd))
 
     async_session.add(user)
     await async_session.commit()
