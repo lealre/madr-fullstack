@@ -33,6 +33,7 @@ freezegun = '^1.5.1'
 testcontainers = '^4.7.2'
 pytest-asyncio = '^0.24.0'
 gevent = "^24.11.1"
+mypy = "^1.13.0"
 
 [tool.pytest.ini_options]
 pythonpath = '.'
@@ -53,6 +54,12 @@ select = ['I', 'F', 'E', 'W', 'PL', 'PT']
 [tool.ruff.format]
 preview = true
 quote-style = 'single'
+
+[tool.mypy]
+disallow_untyped_defs = true
+show_error_codes = true
+pretty = true
+exclude = [ ".venv", "migrations"]
 
 [tool.taskipy.tasks]
 run = 'fastapi dev src/app.py'

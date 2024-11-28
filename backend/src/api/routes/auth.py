@@ -49,7 +49,7 @@ def refresh_access_token(user: CurrentUser):
 
 @router.get('/google')
 async def login_google(request: Request):
-    return await oauth.google.authorize_redirect(
+    return await oauth.google.authorize_redirect(  # type: ignore
         request, settings.GOOGLE_REDIRECT_URI
     )
 
@@ -57,7 +57,7 @@ async def login_google(request: Request):
 @router.get('/callback/google')
 async def auth_google(request: Request):
     try:
-        user_response = await oauth.google.authorize_access_token(request)
+        user_response = await oauth.google.authorize_access_token(request)  # type: ignore
     except OAuthError:
         return HTTPException(
             status_code=HTTPStatus.UNAUTHORIZED,

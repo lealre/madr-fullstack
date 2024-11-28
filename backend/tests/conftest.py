@@ -2,8 +2,11 @@ import factory
 import factory.fuzzy
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 from testcontainers.postgres import PostgresContainer
 
 from src.api.dependencies import get_session
@@ -59,14 +62,14 @@ async def async_session(postgres_container):
         await conn.run_sync(table_registry.metadata.drop_all)
         await conn.run_sync(table_registry.metadata.create_all)
 
-    async_session = sessionmaker(
+    async_session = async_sessionmaker(
         autoflush=False,
-        bind=async_engine,  # type: ignore
+        bind=async_engine,
         class_=AsyncSession,
         expire_on_commit=False,
-    )  # type: ignore
+    )
 
-    async with async_session() as as_session:  # type: ignore
+    async with async_session() as as_session:
         yield as_session
 
 

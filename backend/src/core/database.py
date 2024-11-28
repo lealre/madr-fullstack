@@ -1,6 +1,9 @@
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 
 from src.core.security import get_password_hash
 from src.core.settings import settings
@@ -8,10 +11,10 @@ from src.models import User
 
 engine = create_async_engine(settings.DATABASE_URL, future=True, echo=True)
 
-AsyncSessionLocal = sessionmaker(
+AsyncSessionLocal = async_sessionmaker(
     autocommit=False,
-    autoflush=True,
     expire_on_commit=False,
+    autoflush=True,
     bind=engine,
     class_=AsyncSession,
 )

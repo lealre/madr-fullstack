@@ -1,3 +1,6 @@
+from pathlib import Path
+
+from pydantic import DirectoryPath, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -16,20 +19,20 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER_EMAIL: str = 'admin@admin.com'
     FIRST_SUPERUSER_PASSWORD: str = 'admin'
 
-    EMAIL_USERNAME: str
-    EMAIL_PASSWORD: str
-    EMAIL_FROM: str
+    EMAIL_USERNAME: str = ''
+    EMAIL_PASSWORD: SecretStr = SecretStr('')
+    EMAIL_FROM: str = ''
     EMAIL_PORT: int = 587
-    EMAIL_SERVER: str
-    EMAIL_FROM_NAME: str
+    EMAIL_SERVER: str = ''
+    EMAIL_FROM_NAME: str = ''
     EMAIL_STARTTLS: bool = True
     EMAIL_SSL_TLS: bool = False
     USE_CREDENTIALS: bool = True
     VALIDATE_CERTS: bool = True
-    TEMPLATE_FOLDER: str = 'src/email/templates'
+    TEMPLATE_FOLDER: DirectoryPath = Path('src/email/templates')
 
-    GOOGLE_CLIENT_ID: str
-    GOOGLE_CLIENT_SECRET: str
+    GOOGLE_CLIENT_ID: str = ''
+    GOOGLE_CLIENT_SECRET: str = ''
     GOOGLE_REDIRECT_URI: str = 'http://127.0.0.1:8000/auth/callback/google'
 
 

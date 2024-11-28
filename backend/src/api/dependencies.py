@@ -15,7 +15,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/token')
 
 
 async def get_session():  # pragma: no cover
-    async with AsyncSessionLocal() as session: # type: ignore
+    async with AsyncSessionLocal() as session:
         yield session
 
 

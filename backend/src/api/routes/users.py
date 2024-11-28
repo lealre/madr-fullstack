@@ -167,8 +167,8 @@ async def delete_user(
         )
     if user_to_delete.id == current_user.id:
         raise HTTPException(
-            status_code=403,
-            detail='Super users are not allowed to delete themselves',
+            status_code=HTTPStatus.FORBIDDEN,
+            detail='Super users are not allowed to delete themselves.',
         )
 
     await session.delete(user_to_delete)
@@ -209,7 +209,7 @@ async def singup(session: SessionDep, user_in: UserRequestCreate):
     return new_user
 
 
-@router.get('/me/{user_id}', response_model=UserResponse)
+@router.get('/me', response_model=UserResponse)
 async def get_user_info_me(user_id: int, current_user: CurrentUser):
     """
     User - Get own account details by ID.
