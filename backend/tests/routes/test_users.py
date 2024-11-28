@@ -58,9 +58,9 @@ async def test_create_user_with_duplicated_email(async_client, user):
     assert response.json() == {'detail': 'Email already exists.'}
 
 
-async def test_get_user_by_id(async_client, user, user_token):
+async def test_get_user_info_me(async_client, user, user_token):
     response = await async_client.get(
-        f'/users/me/{user.id}',
+        '/users/me/',
         headers={'Authorization': f'Bearer {user_token}'},
     )
 
@@ -78,39 +78,29 @@ async def test_get_user_by_id(async_client, user, user_token):
     }
 
 
-async def test_get_user_by_id_not_authenticated(async_client, user):
-    response = await async_client.get(f'/users/me/{user.id}')
+async def test_get_user_info_me_not_authenticated(async_client):
+    response = await async_client.get('/users/me/')
 
     assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {'detail': 'Not authenticated'}
 
 
-async def test_get_user_by_id_not_enough_permissions(
-    async_client, user, user_token, other_user
-):
-    response = await async_client.get(
-        f'/users/me/{other_user.id}',
-        headers={'Authorization': f'Bearer {user_token}'},
-    )
-
-    assert response.status_code == HTTPStatus.FORBIDDEN
-    assert response.json() == {'detail': 'Not enough permissions.'}
-
-
 async def test_update_user_info(async_client, user, user_token):
+    username_updated = 'update_name'
+    email_updated = 'update@email.com'
     response = await async_client.patch(
-        f'/users/me/{user.id}',
+        '/users/me/',
         headers={'Authorization': f'Bearer {user_token}'},
         json={
-            'username': 'update_name',
-            'email': 'update@email.com',
+            'username': username_updated,
+            'email': email_updated,
         },
     )
 
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {
-        'username': 'update_name',
-        'email': 'update@email.com',
+        'username': username_updated,
+        'email': email_updated,
         'id': user.id,
         'first_name': user.first_name,
         'last_name': user.last_name,
@@ -144,14 +134,13 @@ async def test_update_user_info_with_credentials_already_in_db(  # noqa: PLR0917
     update_payload,
     response_detail_message,
     async_client,
-    user,
     user_token,
     other_user,
 ):
     payload = update_payload(other_user)
 
     response = await async_client.patch(
-        f'/users/me/{user.id}',
+        '/users/me/',
         headers={'Authorization': f'Bearer {user_token}'},
         json=payload,
     )
@@ -160,30 +149,13 @@ async def test_update_user_info_with_credentials_already_in_db(  # noqa: PLR0917
     assert response.json() == {'detail': response_detail_message}
 
 
-async def test_update_user_info_not_enough_permissions(
-    async_client, user, user_token, other_user
-):
-    response = await async_client.patch(
-        f'/users/me/{other_user.id}',
-        headers={'Authorization': f'Bearer {user_token}'},
-        json={
-            'username': 'update_name',
-            'email': 'update@email.com',
-            'password': 'update_password',
-        },
-    )
-
-    assert response.status_code == HTTPStatus.FORBIDDEN
-    assert response.json() == {'detail': 'Not enough permissions.'}
-
-
 async def test_update_user_password(
     async_client, async_session, user, user_token
 ):
     new_password = 'new_password'
 
     response = await async_client.patch(
-        f'/users/me/change-password/{user.id}',
+        '/users/me/change-password/',
         headers={'Authorization': f'Bearer {user_token}'},
         json={
             'password': new_password,
@@ -198,14 +170,15 @@ async def test_update_user_password(
         session=async_session, user_id=user.id
     )
 
-    assert verify_password(new_password, updated_user.password_hash)  # type: ignore
+    assert updated_user
+    assert verify_password(new_password, updated_user.password_hash)
 
 
 async def test_update_user_password_mismatch(async_client, user, user_token):
     new_password = 'new_password'
 
     response = await async_client.patch(
-        f'/users/me/change-password/{user.id}',
+        '/users/me/change-password',
         headers={'Authorization': f'Bearer {user_token}'},
         json={
             'password': new_password + 'difference',
@@ -217,41 +190,11 @@ async def test_update_user_password_mismatch(async_client, user, user_token):
     assert response.json() == {'detail': 'Passwords dont match.'}
 
 
-async def test_update_user_password_not_enough_permissions(
-    async_client, user, user_token, other_user
-):
-    new_password = 'new_password'
-
-    response = await async_client.patch(
-        f'/users/me/change-password/{other_user.id}',
-        headers={'Authorization': f'Bearer {user_token}'},
-        json={
-            'password': new_password,
-            'password_confirmation': new_password,
-        },
-    )
-
-    assert response.status_code == HTTPStatus.FORBIDDEN
-    assert response.json() == {'detail': 'Not enough permissions.'}
-
-
-async def test_delete_user(async_client, user, user_token):
+async def test_delete_user(async_client, user_token):
     response = await async_client.delete(
-        f'/users/me/{user.id}',
+        '/users/me/',
         headers={'Authorization': f'Bearer {user_token}'},
     )
 
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {'message': 'User deleted.'}
-
-
-async def test_delete_user_not_enough_permissions(
-    async_client, user, user_token, other_user
-):
-    response = await async_client.delete(
-        f'/users/me/{other_user.id}',
-        headers={'Authorization': f'Bearer {user_token}'},
-    )
-
-    assert response.status_code == HTTPStatus.FORBIDDEN
-    assert response.json() == {'detail': 'Not enough permissions.'}

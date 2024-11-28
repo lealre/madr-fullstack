@@ -209,35 +209,24 @@ async def singup(session: SessionDep, user_in: UserRequestCreate):
     return new_user
 
 
-@router.get('/me', response_model=UserResponse)
-async def get_user_info_me(user_id: int, current_user: CurrentUser):
+@router.get('/me/', response_model=UserResponse)
+async def get_user_info_me(current_user: CurrentUser):
     """
-    User - Get own account details by ID.
+    User - Get own account details.
     """
-
-    if current_user.id != user_id:
-        raise HTTPException(
-            status_code=HTTPStatus.FORBIDDEN, detail='Not enough permissions.'
-        )
 
     return current_user
 
 
-@router.patch('/me/{user_id}', response_model=UserResponse)
+@router.patch('/me/', response_model=UserResponse)
 async def update_user_info_me(
     session: SessionDep,
-    user_id: int,
     user_in: UserRequestUpdate,
     current_user: CurrentUser,
 ):
     """
-    User - Update own account information by ID.
+    User - Update own account information.
     """
-
-    if current_user.id != user_id:
-        raise HTTPException(
-            status_code=HTTPStatus.FORBIDDEN, detail='Not enough permissions.'
-        )
 
     user_db = await users_service.get_user(
         session=session, username=user_in.username, user_email=user_in.email
@@ -262,18 +251,11 @@ async def update_user_info_me(
     return user_updated
 
 
-@router.delete('/me/{user_id}', response_model=Message)
-async def delete_user_me(
-    session: SessionDep, user_id: int, current_user: CurrentUser
-):
+@router.delete('/me/', response_model=Message)
+async def delete_user_me(session: SessionDep, current_user: CurrentUser):
     """
     User - Delete own account.
     """
-
-    if current_user.id != user_id:
-        raise HTTPException(
-            status_code=HTTPStatus.FORBIDDEN, detail='Not enough permissions.'
-        )
 
     await session.delete(current_user)
     await session.commit()
@@ -281,21 +263,15 @@ async def delete_user_me(
     return {'message': 'User deleted.'}
 
 
-@router.patch('/me/change-password/{user_id}', response_model=Message)
+@router.patch('/me/change-password', response_model=Message)
 async def update_password_me(
     session: SessionDep,
-    user_id: int,
     passwords: PasswordChange,
     current_user: CurrentUser,
 ):
     """
     User - Change own password
     """
-
-    if current_user.id != user_id:
-        raise HTTPException(
-            status_code=HTTPStatus.FORBIDDEN, detail='Not enough permissions.'
-        )
 
     if passwords.password != passwords.password_confirmation:
         raise HTTPException(

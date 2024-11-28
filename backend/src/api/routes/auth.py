@@ -40,8 +40,8 @@ async def access_token(
     return {'access_token': access_token, 'token_type': 'bearer'}
 
 
-@router.post('/refresh_token', response_model=Token)
-def refresh_access_token(user: CurrentUser):
+@router.post('/refresh_token/', response_model=Token)
+async def refresh_access_token(user: CurrentUser):
     new_access_token = create_access_token(data={'sub': user.email})
 
     return {'access_token': new_access_token, 'token_type': 'bearer'}

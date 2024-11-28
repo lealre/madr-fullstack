@@ -1,6 +1,11 @@
 from http import HTTPStatus
 
+import pytest
+from fastapi import HTTPException
 from freezegun import freeze_time
+
+from src.api.dependencies import get_current_user
+from src.core.security import create_access_token
 
 
 async def test_get_token(async_client, user):
@@ -49,7 +54,7 @@ async def test_token_expired_after_time(async_client, user):
 
     with freeze_time('2024-01-01 13:01:00'):
         response = await async_client.patch(
-            f'/users/me/{user.id}',
+            '/users/me/',
             headers={'Authorization': f'Bearer {token}'},
             json={
                 'username': 'update',
@@ -62,9 +67,9 @@ async def test_token_expired_after_time(async_client, user):
         assert response.json() == {'detail': 'Could not validate credentials.'}
 
 
-async def test_refresh_token(async_client, user_token, user):
+async def test_refresh_token(async_client, user_token):
     response = await async_client.post(
-        '/auth/refresh_token',
+        '/auth/refresh_token/',
         headers={'Authorization': f'Bearer {user_token}'},
     )
 
@@ -87,16 +92,17 @@ async def test_token_expired_dont_refresh(async_client, user):
 
     with freeze_time('2024-01-01 13:01:00'):
         response = await async_client.post(
-            '/auth/refresh_token', headers={'Authorization': f'Bearer {token}'}
+            '/auth/refresh_token/',
+            headers={'Authorization': f'Bearer {token}'},
         )
 
         assert response.status_code == HTTPStatus.UNAUTHORIZED
         assert response.json() == {'detail': 'Could not validate credentials.'}
 
 
-async def test_user_not_found_get_current_user(async_client, user, user_token):
+async def test_user_not_found_get_current_user(async_client, user_token):
     response = await async_client.delete(
-        f'/users/me/{user.id}',
+        '/users/me/',
         headers={'Authorization': f'Bearer {user_token}'},
     )
 
@@ -104,9 +110,20 @@ async def test_user_not_found_get_current_user(async_client, user, user_token):
     assert response.json() == {'message': 'User deleted.'}
 
     response = await async_client.post(
-        '/auth/refresh_token',
+        '/auth/refresh_token/',
         headers={'Authorization': f'Bearer {user_token}'},
     )
 
     assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {'detail': 'Could not validate credentials.'}
+
+
+async def test_token_with_empty_email_sub(async_session):
+    token_payload = {}
+    token = create_access_token(token_payload)
+
+    with pytest.raises(HTTPException) as exc_info:
+        await get_current_user(session=async_session, token=token)
+
+    assert exc_info.value.status_code == HTTPStatus.UNAUTHORIZED
+    assert exc_info.value.detail == 'Could not validate credentials.'
