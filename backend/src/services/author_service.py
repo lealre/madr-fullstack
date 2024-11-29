@@ -8,18 +8,51 @@ from src.models import Author
 from src.schemas.authors import AuthorSchema
 
 
-async def register_new_author_in_db(
-    session: AsyncSession, author: AuthorSchema
-):
-    new_author = await session.scalar(
-        select(Author).where(Author.name == author.name)
+async def get_author_by_id(
+    session: AsyncSession, author_id: int
+) -> Author | None:
+    """
+    Retrieve an author from the database by their ID.
+
+    :param session: The database session used to perform the query.
+    :param author_id: The ID of the author to retrieve.
+    :return: The Author object if found, otherwise None.
+    """
+
+    author_db = await session.scalar(
+        select(Author).where(Author.id == author_id)
     )
 
-    if new_author:
-        raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST,
-            detail=f'{author.name} already in MADR.',
-        )
+    return author_db
+
+
+async def get_author_by_name(
+    session: AsyncSession, author_name: str
+) -> Author | None:
+    """
+    Retrieve an author from the database by their name.
+
+    :param session: The database session used to perform the query.
+    :param author_name: The name of the author to retrieve.
+    :return: The Author object if found, otherwise None.
+    """
+
+    author_db = await session.scalar(
+        select(Author).where(Author.name == author_name)
+    )
+
+    return author_db
+
+
+async def add_author(session: AsyncSession, author: AuthorSchema) -> Author:
+    """
+    Add a new author to the database.
+
+    :param session: The database session used to perform the operation.
+    :param author: The AuthorSchema object containing the details of
+    the author to add.
+    :return: The newly created Author object.
+    """
 
     new_author = Author(**author.model_dump())
 

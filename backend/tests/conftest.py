@@ -53,9 +53,7 @@ BASE_URL = 'http://test'
 
 @pytest_asyncio.fixture
 async def async_session(postgres_container):
-    async_db_url = postgres_container.get_connection_url().replace(
-        'postgresql://', 'postgresql+asyncpg://'
-    )
+    async_db_url = postgres_container.get_connection_url()
     async_engine = create_async_engine(async_db_url, pool_pre_ping=True)
 
     async with async_engine.begin() as conn:

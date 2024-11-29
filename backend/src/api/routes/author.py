@@ -1,16 +1,16 @@
 from http import HTTPStatus
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException
 
-from src.api.dependencies import CurrentUser, SessionDep
+from src.api.dependencies import CurrentUser, SessionDep, get_current_user
 from src.schemas.authors import AuthorList, AuthorPublic, AuthorSchema
 from src.schemas.base import Message
 from src.schemas.responses import response_model
+from src.services import author_service
 from src.services.author_service import (
     delete_author_from_db,
     get_author_by_id_from_db,
     query_paginated_authors_from_db,
-    register_new_author_in_db,
     update_author_in_db,
 )
 
@@ -21,16 +21,28 @@ router = APIRouter()
     '/',
     response_model=AuthorPublic,
     status_code=HTTPStatus.CREATED,
+    dependencies=[Depends(get_current_user)],
     responses={
         HTTPStatus.BAD_REQUEST: response_model,
         HTTPStatus.UNAUTHORIZED: response_model,
     },
 )
-async def add_author(
-    author: AuthorSchema, session: SessionDep, user: CurrentUser
-):
-    author_db = await register_new_author_in_db(session=session, author=author)
-    return author_db
+async def add_author(author_in: AuthorSchema, session: SessionDep):
+    author_db = await author_service.get_author_by_name(
+        session=session, author_name=author_in.name
+    )
+
+    if author_db:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail=f'{author_in.name} already in MADR.',
+        )
+
+    new_author = await author_service.add_author(
+        session=session, author=author_in
+    )
+
+    return new_author
 
 
 @router.delete(
