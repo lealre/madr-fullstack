@@ -1,7 +1,4 @@
-from http import HTTPStatus
-
-from fastapi import HTTPException
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models import Author
@@ -44,6 +41,52 @@ async def get_author_by_name(
     return author_db
 
 
+async def get_authors_list(
+    session: AsyncSession, limit: int, offset: int
+) -> list[Author]:
+    """
+    Retrieve a paginated list of authors from the database.
+
+    :param session: The asynchronous database session used for the query.
+    :param limit: The maximum number of authors to retrieve.
+    :param offset: The number of authors to skip before starting
+    to retrieve results.
+    :return: A list of author objects.
+    """
+
+    authors_db = await session.scalars(
+        select(Author).offset(offset).limit(limit)
+    )
+    authors_list = list(authors_db.all())
+
+    return authors_list
+
+
+async def get_authors_name_like(
+    session: AsyncSession,
+    author_name: str,
+    limit: int = 20,
+    offset: int = 0,
+) -> list[Author]:
+    """
+    Retrieve a paginated list of authors whose names contain the
+    given substring.
+
+    :param session: The asynchronous database session used for the query.
+    :param author_name: The substring to search for in the author names.
+    :param limit: The maximum number of authors to retrieve (default is 20).
+    :param offset: The number of authors to skip before starting to
+    retrieve results (default is 0).
+    :return: A list of author objects matching the search criteria.
+    """
+
+    query = select(Author).filter(Author.name.contains(author_name))
+    authors_db = await session.scalars(query.limit(limit).offset(offset))
+    authors_list = list(authors_db.all())
+
+    return authors_list
+
+
 async def add_author(session: AsyncSession, author: AuthorSchema) -> Author:
     """
     Add a new author to the database.
@@ -63,76 +106,24 @@ async def add_author(session: AsyncSession, author: AuthorSchema) -> Author:
     return new_author
 
 
-async def delete_author_from_db(session: AsyncSession, author_id: int):
-    author_db = await session.scalar(
-        select(Author).where(Author.id == author_id)
-    )
+async def update_author_info(
+    session: AsyncSession, author_to_update: Author, author_info: AuthorSchema
+) -> Author:
+    """
+    Updates the information of an existing author with the given data.
 
-    if not author_db:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND,
-            detail='Author not found in MADR.',
-        )
+    :param session: The asynchronous database session to use for the operation.
+    :param author_to_update: The existing author instance to be updated.
+    :param author_info: The schema containing updated data for the author.
+                        Only fields that are set will be used for the update.
+    :return: The updated author instance after the database commit and refresh.
+    """
 
-    await session.delete(author_db)
+    for key, value in author_info.model_dump(exclude_unset=True).items():
+        setattr(author_to_update, key, value)
+
+    session.add(author_to_update)
     await session.commit()
+    await session.refresh(author_to_update)
 
-
-async def update_author_in_db(
-    session: AsyncSession, author_id: int, author: AuthorSchema
-):
-    author_db = await session.scalar(
-        select(Author).where(Author.id == author_id)
-    )
-
-    if not author_db:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND,
-            detail='Author not found in MADR.',
-        )
-
-    author_db.name = author.name
-
-    session.add(author_db)
-    await session.commit()
-    await session.refresh(author_db)
-
-    return author_db
-
-
-async def get_author_by_id_from_db(session: AsyncSession, author_id: int):
-    author_db = await session.scalar(
-        select(Author).where(Author.id == author_id)
-    )
-
-    if not author_db:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND,
-            detail='Author not found in MADR.',
-        )
-
-    return author_db
-
-
-async def query_paginated_authors_from_db(
-    session: AsyncSession,
-    name: str | None,
-    limit: int = 20,
-    offset: int = 0,
-):
-    if not name:
-        total_results = await session.scalar(select(func.count(Author.id)))
-        authors_list = await session.scalars(
-            select(Author).limit(limit).offset(offset)
-        )
-        return authors_list, total_results
-
-    query = select(Author).filter(Author.name.contains(name))
-
-    total_results = await session.scalar(
-        select(func.count()).select_from(query.subquery())
-    )
-
-    authors_list = await session.scalars(query.limit(limit).offset(offset))
-
-    return authors_list, total_results
+    return author_to_update

@@ -55,7 +55,7 @@ async def get_users_list(
     :param limit: The maximum number of users to retrieve.
     :param offset: The number of users to skip before starting
     to retrieve results.
-    :return: A list of user objects wrapped in a UserListResponse.
+    :return: A list of user objects.
     """
 
     users_db = await session.scalars(select(User).offset(offset).limit(limit))

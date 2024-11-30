@@ -2,17 +2,11 @@ from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from src.api.dependencies import CurrentUser, SessionDep, get_current_user
+from src.api.dependencies import SessionDep, get_current_user
 from src.schemas.authors import AuthorList, AuthorPublic, AuthorSchema
 from src.schemas.base import Message
 from src.schemas.responses import response_model
 from src.services import author_service
-from src.services.author_service import (
-    delete_author_from_db,
-    get_author_by_id_from_db,
-    query_paginated_authors_from_db,
-    update_author_in_db,
-)
 
 router = APIRouter()
 
@@ -48,21 +42,36 @@ async def add_author(author_in: AuthorSchema, session: SessionDep):
 @router.delete(
     '/{author_id}',
     response_model=Message,
+    dependencies=[Depends(get_current_user)],
     responses={
         HTTPStatus.NOT_FOUND: response_model,
         HTTPStatus.UNAUTHORIZED: response_model,
     },
 )
 async def delete_author(
-    author_id: int, session: SessionDep, user: CurrentUser
+    session: SessionDep,
+    author_id: int,
 ):
-    await delete_author_from_db(session=session, author_id=author_id)
+    author_db = await author_service.get_author_by_id(
+        session=session, author_id=author_id
+    )
+
+    if not author_db:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='Author not found in MADR.',
+        )
+
+    await session.delete(author_db)
+    await session.commit()
+
     return {'message': 'Author deleted from MADR.'}
 
 
 @router.patch(
     '/{author_id}',
     response_model=AuthorPublic,
+    dependencies=[Depends(get_current_user)],
     responses={
         HTTPStatus.NOT_FOUND: response_model,
         HTTPStatus.UNAUTHORIZED: response_model,
@@ -70,14 +79,24 @@ async def delete_author(
 )
 async def update_author(
     author_id: int,
-    author: AuthorSchema,
+    author_in: AuthorSchema,
     session: SessionDep,
-    user: CurrentUser,
 ):
-    author_db = await update_author_in_db(
-        session=session, author_id=author_id, author=author
+    author_db = await author_service.get_author_by_id(
+        session=session, author_id=author_id
     )
-    return author_db
+
+    if not author_db:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='Author not found in MADR.',
+        )
+
+    author_updated = await author_service.update_author_info(
+        session=session, author_to_update=author_db, author_info=author_in
+    )
+
+    return author_updated
 
 
 @router.get(
@@ -89,9 +108,16 @@ async def update_author(
     },
 )
 async def get_author_by_id(author_id: int, session: SessionDep):
-    author_db = await get_author_by_id_from_db(
+    author_db = await author_service.get_author_by_id(
         session=session, author_id=author_id
     )
+
+    if not author_db:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='Author not found in MADR.',
+        )
+
     return author_db
 
 
@@ -102,8 +128,15 @@ async def get_author_with_name_like(
     limit: int = 20,
     offset: int = 0,
 ):
-    authors_list, total_results = await query_paginated_authors_from_db(
-        session=session, name=name, limit=limit, offset=offset
+    if not name:
+        authors_list = await author_service.get_authors_list(
+            session=session, offset=offset, limit=limit
+        )
+
+        return {'authors': authors_list, 'total_results': len(authors_list)}
+
+    authors_list = await author_service.get_authors_name_like(
+        session=session, offset=offset, limit=limit, author_name=name
     )
 
-    return {'authors': authors_list, 'total_results': total_results}
+    return {'authors': authors_list, 'total_results': len(authors_list)}
