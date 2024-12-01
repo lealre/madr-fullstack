@@ -4,30 +4,54 @@ from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models import Author, Book
+from src.models import Book
 from src.schemas.books import BookSchema
 
 
-async def register_new_book_in_db(session: AsyncSession, book: BookSchema):
-    new_book = await session.scalar(
-        select(Book).where(book.title == Book.title)
-    )
+async def get_book_by_id(session: AsyncSession, book_id: int) -> Book | None:
+    """
+    Retrieve a book by its ID from the database.
 
-    if new_book:
-        raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST,
-            detail=f'{new_book.title} already in MADR.',
-        )
+    :param session: The asynchronous database session used for the query.
+    :param book_id: The ID of the book to retrieve.
+    :return: The Book object if found, or None if no book with the specified
+    ID exists.
+    """
 
-    author = await session.scalar(
-        select(Author).where(Author.id == book.author_id)
-    )
+    book_db = await session.scalar(select(Book).where(Book.id == book_id))
 
-    if not author:
-        raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST,
-            detail=f'Author with ID {book.author_id} not found.',
-        )
+    return book_db
+
+
+async def get_book_by_title(
+    session: AsyncSession, book_title: str
+) -> Book | None:
+    """
+    Retrieve a book by its title from the database.
+
+    :param session: The asynchronous database session used for the query.
+    :param book_title: The title of the book to retrieve.
+    :return: The Book object if found, or None if no book with the specified
+    title exists.
+    """
+
+    book_db = await session.scalar(select(Book).where(Book.title == book_title))
+
+    return book_db
+
+
+
+
+async def add_book(session: AsyncSession, book: BookSchema) -> Book:
+    """
+    Add a new book to the database.
+
+    :param session: The asynchronous database session used for the operation.
+    :param book: The schema object containing the details of the book to be
+    added.
+    :return: The newly created Book object after it has been committed and
+    refreshed.
+    """
 
     new_book = Book(**book.model_dump())
 
@@ -36,18 +60,6 @@ async def register_new_book_in_db(session: AsyncSession, book: BookSchema):
     await session.refresh(new_book)
 
     return new_book
-
-
-async def delete_book_from_db(session: AsyncSession, book_id: int):
-    db_book = await session.scalar(select(Book).where(Book.id == book_id))
-
-    if not db_book:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='Book not found in MADR.'
-        )
-
-    await session.delete(db_book)
-    await session.commit()
 
 
 async def update_book_in_db(

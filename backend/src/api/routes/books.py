@@ -1,16 +1,15 @@
 from http import HTTPStatus
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException
 
-from src.api.dependencies import CurrentUser, SessionDep
+from src.api.dependencies import CurrentUser, SessionDep, get_current_user
 from src.schemas.base import Message
 from src.schemas.books import BookList, BookPublic, BookSchema, BookUpdate
 from src.schemas.responses import response_model
+from src.services import author_service, book_service
 from src.services.book_service import (
-    delete_book_from_db,
     get_book_by_id_from_db,
     query_paginated_books_from_db,
-    register_new_book_in_db,
     update_book_in_db,
 )
 
@@ -21,26 +20,60 @@ router = APIRouter()
     '/',
     response_model=BookPublic,
     status_code=HTTPStatus.CREATED,
+    dependencies=[Depends(get_current_user)],
     responses={
         HTTPStatus.BAD_REQUEST: response_model,
         HTTPStatus.UNAUTHORIZED: response_model,
     },
 )
-async def add_book(book: BookSchema, session: SessionDep, user: CurrentUser):
-    db_book = await register_new_book_in_db(session=session, book=book)
-    return db_book
+async def add_book(session: SessionDep, book_in: BookSchema):
+    book_db = await book_service.get_book_by_title(
+        session=session, book_title=book_in.title
+    )
+
+    if book_db:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail=f'{book_in.title} already in MADR.',
+        )
+
+    author_db = await author_service.get_author_by_id(
+        session=session, author_id=book_in.author_id
+    )
+
+    if not author_db:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail=f'Author with ID {book_in.author_id} not found.',
+        )
+
+    new_book = await book_service.add_book(session=session, book=book_in)
+
+    return new_book
 
 
 @router.delete(
     '/{book_id}',
     response_model=Message,
+    dependencies=[Depends(get_current_user)],
     responses={
         HTTPStatus.NOT_FOUND: response_model,
         HTTPStatus.UNAUTHORIZED: response_model,
     },
 )
-async def delete_book(book_id: int, session: SessionDep, user: CurrentUser):
-    await delete_book_from_db(session=session, book_id=book_id)
+async def delete_book(session: SessionDep, book_id: int):
+    book_db = await book_service.get_book_by_id(
+        session=session, book_id=book_id
+    )
+
+    if not book_db:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail='Book not found in MADR.'
+        )
+
+    await session.delete(book_db)
+    await session.commit()
+
     return {'message': 'Book deleted from MADR.'}
 
 
