@@ -1,3 +1,5 @@
+import typing
+
 import factory
 import factory.fuzzy
 import pytest_asyncio
@@ -14,9 +16,11 @@ from src.app import app
 from src.core.security import get_password_hash
 from src.core.settings import settings
 from src.models import Author, Book, User, table_registry
+from src.schemas.token import Token
+from src.schemas.users import UserResponse
 
 
-class UserFactory(factory.Factory):
+class UserFactory(factory.Factory):  # type: ignore[misc]
     class Meta:
         model = User
 
@@ -26,7 +30,7 @@ class UserFactory(factory.Factory):
     is_superuser = False
 
 
-class BookFactory(factory.Factory):
+class BookFactory(factory.Factory):  # type: ignore[misc]
     class Meta:
         model = Book
 
@@ -35,15 +39,20 @@ class BookFactory(factory.Factory):
     author_id = 1
 
 
-class AuthorFactory(factory.Factory):
+class AuthorFactory(factory.Factory):  # type: ignore[misc]
     class Meta:
         model = Author
 
     name = factory.Sequence(lambda n: f'author_{n}')
 
 
+class MockedUser(UserResponse):
+    id: int
+    clean_password: str
+
+
 @pytest_asyncio.fixture(scope='session')
-def postgres_container():
+def postgres_container() -> typing.Generator[PostgresContainer, None, None]:
     with PostgresContainer('postgres:16', driver='asyncpg') as postgres:
         yield postgres
 
@@ -52,7 +61,9 @@ BASE_URL = 'http://test'
 
 
 @pytest_asyncio.fixture
-async def async_session(postgres_container):
+async def async_session(
+    postgres_container: PostgresContainer,
+) -> typing.AsyncGenerator[AsyncSession, None]:
     async_db_url = postgres_container.get_connection_url()
     async_engine = create_async_engine(async_db_url, pool_pre_ping=True)
 
@@ -72,7 +83,9 @@ async def async_session(postgres_container):
 
 
 @pytest_asyncio.fixture
-async def async_client(async_session):
+async def async_client(
+    async_session: AsyncSession,
+) -> typing.AsyncGenerator[AsyncClient, None]:
     app.dependency_overrides[get_session] = lambda: async_session
     _transport = ASGITransport(app=app)
 
@@ -85,7 +98,9 @@ async def async_client(async_session):
 
 
 @pytest_asyncio.fixture
-async def superuser_token(async_client, superuser):
+async def superuser_token(
+    async_client: AsyncClient, superuser: MockedUser
+) -> str:
     response = await async_client.post(
         '/auth/token',
         data={
@@ -93,23 +108,27 @@ async def superuser_token(async_client, superuser):
             'password': superuser.clean_password,
         },
     )
-    return response.json()['access_token']
+
+    json_response = Token.model_validate(response.json())
+    return json_response.access_token
 
 
 @pytest_asyncio.fixture
-async def user_token(async_client, user):
+async def user_token(async_client: AsyncClient, user: MockedUser) -> str:
     response = await async_client.post(
         '/auth/token',
         data={'username': user.email, 'password': user.clean_password},
     )
-    return response.json()['access_token']
+
+    json_response = Token.model_validate(response.json())
+    return json_response.access_token
 
 
 @pytest_asyncio.fixture
-async def superuser(async_session):
+async def superuser(async_session: AsyncSession) -> MockedUser:
     pwd = settings.FIRST_SUPERUSER_PASSWORD
 
-    superuser = UserFactory(
+    superuser = User(  # type: ignore[call-arg]
         username=settings.FIRST_SUPERUSER_USERNAME,
         email=settings.FIRST_SUPERUSER_EMAIL,
         password_hash=get_password_hash(pwd),
@@ -120,13 +139,16 @@ async def superuser(async_session):
     await async_session.commit()
     await async_session.refresh(superuser)
 
-    superuser.clean_password = pwd  # Monkey Patch
+    superuser_attrs = superuser.__dict__
+    superuser_attrs['clean_password'] = settings.FIRST_SUPERUSER_PASSWORD
+    superuser_attrs['password'] = superuser.password_hash
+    mocked_superuser = MockedUser(**superuser_attrs)
 
-    return superuser
+    return mocked_superuser
 
 
 @pytest_asyncio.fixture
-async def user(async_session):
+async def user(async_session: AsyncSession) -> MockedUser:
     pwd = 'testest'
 
     user = UserFactory(password_hash=get_password_hash(pwd))
@@ -135,13 +157,16 @@ async def user(async_session):
     await async_session.commit()
     await async_session.refresh(user)
 
-    user.clean_password = pwd  # Monkey Patch
+    user_attrs = user.__dict__
+    user_attrs['clean_password'] = pwd
+    user_attrs['password'] = user.password_hash
+    mocked_user = MockedUser(**user_attrs)
 
-    return user
+    return mocked_user
 
 
 @pytest_asyncio.fixture
-async def other_user(async_session):
+async def other_user(async_session: AsyncSession) -> User:
     user = UserFactory()
 
     async_session.add(user)
@@ -152,7 +177,7 @@ async def other_user(async_session):
 
 
 @pytest_asyncio.fixture
-async def author(async_session):
+async def author(async_session: AsyncSession) -> Author:
     author = AuthorFactory()
 
     async_session.add(author)
@@ -163,7 +188,7 @@ async def author(async_session):
 
 
 @pytest_asyncio.fixture
-async def book(async_session, author):
+async def book(async_session: AsyncSession, author: Author) -> Book:
     book = BookFactory()
 
     async_session.add(book)
