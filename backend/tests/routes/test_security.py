@@ -1,11 +1,13 @@
 from http import HTTPStatus
 
+from httpx import AsyncClient
 from jwt import decode
 
-from src.core.security import create_access_token, settings
+from src.core.security import create_access_token
+from src.core.settings import settings
 
 
-def test_jwt():
+def test_jwt() -> None:
     data = {'sub': 'test@test.com'}
     token = create_access_token(data)
 
@@ -17,9 +19,9 @@ def test_jwt():
     assert result['exp']
 
 
-async def test_jwt_invalid_token(async_client):
+async def test_jwt_invalid_token(async_client: AsyncClient) -> None:
     response = await async_client.delete(
-        '/users/1', headers={'Authorization': 'Bearer token-invalido'}
+        '/users/me', headers={'Authorization': 'Bearer token-invalido'}
     )
 
     assert response.status_code == HTTPStatus.UNAUTHORIZED

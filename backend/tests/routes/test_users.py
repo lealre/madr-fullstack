@@ -1,12 +1,17 @@
 from http import HTTPStatus
+from typing import Callable
 
 import pytest
+from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.security import verify_password
-from src.services import users_service
+from src.models import User
+from src.services import user_service
+from tests.conftest import MockedUser
 
 
-async def test_create_user(async_client):
+async def test_create_user(async_client: AsyncClient) -> None:
     response = await async_client.post(
         '/users/singup',
         json={
@@ -26,11 +31,12 @@ async def test_create_user(async_client):
         'is_superuser': False,
         'is_active': True,
         'is_verified': False,
-        'google_sub': None,
     }
 
 
-async def test_create_user_with_duplicated_username(async_client, user):
+async def test_create_user_with_duplicated_username(
+    async_client: AsyncClient, user: MockedUser
+) -> None:
     response = await async_client.post(
         '/users/singup',
         json={
@@ -44,7 +50,9 @@ async def test_create_user_with_duplicated_username(async_client, user):
     assert response.json() == {'detail': 'Username already exists.'}
 
 
-async def test_create_user_with_duplicated_email(async_client, user):
+async def test_create_user_with_duplicated_email(
+    async_client: AsyncClient, user: MockedUser
+) -> None:
     response = await async_client.post(
         '/users/singup',
         json={
@@ -58,7 +66,9 @@ async def test_create_user_with_duplicated_email(async_client, user):
     assert response.json() == {'detail': 'Email already exists.'}
 
 
-async def test_get_user_info_me(async_client, user, user_token):
+async def test_get_user_info_me(
+    async_client: AsyncClient, user: MockedUser, user_token: str
+) -> None:
     response = await async_client.get(
         '/users/me/',
         headers={'Authorization': f'Bearer {user_token}'},
@@ -74,18 +84,21 @@ async def test_get_user_info_me(async_client, user, user_token):
         'is_superuser': user.is_superuser,
         'is_active': user.is_active,
         'is_verified': user.is_verified,
-        'google_sub': user.google_sub,
     }
 
 
-async def test_get_user_info_me_not_authenticated(async_client):
+async def test_get_user_info_me_not_authenticated(
+    async_client: AsyncClient,
+) -> None:
     response = await async_client.get('/users/me/')
 
     assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {'detail': 'Not authenticated'}
 
 
-async def test_update_user_info(async_client, user, user_token):
+async def test_update_user_info(
+    async_client: AsyncClient, user: MockedUser, user_token: str
+) -> None:
     username_updated = 'update_name'
     email_updated = 'update@email.com'
     response = await async_client.patch(
@@ -107,7 +120,6 @@ async def test_update_user_info(async_client, user, user_token):
         'is_superuser': user.is_superuser,
         'is_active': user.is_active,
         'is_verified': user.is_verified,
-        'google_sub': user.google_sub,
     }
 
 
@@ -131,12 +143,12 @@ async def test_update_user_info(async_client, user, user_token):
     ],
 )
 async def test_update_user_info_with_credentials_already_in_db(  # noqa: PLR0917, PLR0913
-    update_payload,
-    response_detail_message,
-    async_client,
-    user_token,
-    other_user,
-):
+    update_payload: Callable[[User], dict[str, str]],
+    response_detail_message: str,
+    async_client: AsyncClient,
+    user_token: str,
+    other_user: User,
+) -> None:
     payload = update_payload(other_user)
 
     response = await async_client.patch(
@@ -150,8 +162,11 @@ async def test_update_user_info_with_credentials_already_in_db(  # noqa: PLR0917
 
 
 async def test_update_user_password(
-    async_client, async_session, user, user_token
-):
+    async_client: AsyncClient,
+    async_session: AsyncSession,
+    user: MockedUser,
+    user_token: str,
+) -> None:
     new_password = 'new_password'
 
     response = await async_client.patch(
@@ -166,7 +181,7 @@ async def test_update_user_password(
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {'message': 'Password has been changed!'}
 
-    updated_user = await users_service.get_user_by_id(
+    updated_user = await user_service.get_user_by_id(
         session=async_session, user_id=user.id
     )
 
@@ -174,7 +189,9 @@ async def test_update_user_password(
     assert verify_password(new_password, updated_user.password_hash)
 
 
-async def test_update_user_password_mismatch(async_client, user, user_token):
+async def test_update_user_password_mismatch(
+    async_client: AsyncClient, user: MockedUser, user_token: str
+) -> None:
     new_password = 'new_password'
 
     response = await async_client.patch(
@@ -190,7 +207,7 @@ async def test_update_user_password_mismatch(async_client, user, user_token):
     assert response.json() == {'detail': 'Passwords dont match.'}
 
 
-async def test_delete_user(async_client, user_token):
+async def test_delete_user(async_client: AsyncClient, user_token: str) -> None:
     response = await async_client.delete(
         '/users/me/',
         headers={'Authorization': f'Bearer {user_token}'},
