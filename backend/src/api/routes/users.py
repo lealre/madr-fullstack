@@ -1,11 +1,11 @@
 from http import HTTPStatus
+from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 
 from src.api.dependencies import (
     CurrentUser,
     SessionDep,
-    get_current_active_superuser,
 )
 from src.core.security import (
     create_url_safe_token,
@@ -15,180 +15,24 @@ from src.email.email import create_email_message, email
 from src.schemas.base import Email, Message
 from src.schemas.users import (
     PasswordChange,
-    SuperUserRequestCreate,
-    SuperUserRequestUpdate,
-    UserListResponse,
     UserRequestCreate,
     UserRequestUpdate,
     UserResponse,
 )
-from src.services import users_service
+from src.services import user_service
 
 router = APIRouter()
-
-
-# -- Superuser routes --
-
-
-@router.get(
-    '/all',
-    response_model=UserListResponse,
-    dependencies=[Depends(get_current_active_superuser)],
-)
-async def read_users(session: SessionDep, limit: int = 100, offset: int = 0):
-    """
-    Superuser - Retrieve all user accounts.
-    """
-
-    users = await users_service.get_users_list(
-        session=session, offset=offset, limit=limit
-    )
-
-    return {'users': users}
-
-
-@router.get(
-    '/{user_id}',
-    response_model=UserResponse,
-    dependencies=[Depends(get_current_active_superuser)],
-)
-async def get_user_by_id(session: SessionDep, user_id: int):
-    """
-    Superuser - Get account by ID.
-    """
-
-    user_db = await users_service.get_user_by_id(
-        session=session, user_id=user_id
-    )
-
-    if not user_db:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='User not found.'
-        )
-
-    return user_db
-
-
-@router.post(
-    '/',
-    response_model=UserResponse,
-    status_code=HTTPStatus.CREATED,
-    dependencies=[Depends(get_current_active_superuser)],
-)
-async def create_user(session: SessionDep, user_in: SuperUserRequestCreate):
-    """
-    Superuser - Create a user account.
-    """
-
-    user_db = await users_service.get_user(
-        session=session, user_email=user_in.email, username=user_in.username
-    )
-
-    if user_db:
-        if user_db.username == user_in.username:
-            raise HTTPException(
-                status_code=HTTPStatus.BAD_REQUEST,
-                detail='Username already exists.',
-            )
-        if user_db.email == user_in.email:
-            raise HTTPException(
-                status_code=HTTPStatus.BAD_REQUEST,
-                detail='Email already exists.',
-            )
-
-    new_user = await users_service.add_user(session=session, user=user_in)
-
-    return new_user
-
-
-@router.patch(
-    '/{user_id}',
-    response_model=UserResponse,
-    dependencies=[Depends(get_current_active_superuser)],
-)
-async def update_user_info(
-    session: SessionDep, user_id: int, user_in: SuperUserRequestUpdate
-):
-    """
-    Superuser - Update a user's account info.
-    """
-
-    user_to_update = await users_service.get_user_by_id(
-        session=session, user_id=user_id
-    )
-
-    if not user_to_update:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='User not found.'
-        )
-
-    user_db = await users_service.get_user(
-        session=session, username=user_in.username, user_email=user_in.email
-    )
-
-    if user_db:
-        if user_db.username == user_in.username:
-            raise HTTPException(
-                status_code=HTTPStatus.BAD_REQUEST,
-                detail='Username already exists.',
-            )
-        if user_db.email == user_in.email:
-            raise HTTPException(
-                status_code=HTTPStatus.BAD_REQUEST,
-                detail='Email already exists.',
-            )
-
-    user_updated = await users_service.update_user_info(
-        session=session, user_info=user_in, user_to_update=user_to_update
-    )
-
-    return user_updated
-
-
-@router.delete(
-    '/{user_id}',
-    status_code=HTTPStatus.OK,
-    dependencies=[Depends(get_current_active_superuser)],
-)
-async def delete_user(
-    session: SessionDep, user_id: int, current_user: CurrentUser
-):
-    """
-    Superuser - Delete a user account by ID.
-    """
-
-    user_to_delete = await users_service.get_user_by_id(
-        session=session, user_id=user_id
-    )
-
-    if not user_to_delete:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='User not found.'
-        )
-    if user_to_delete.id == current_user.id:
-        raise HTTPException(
-            status_code=HTTPStatus.FORBIDDEN,
-            detail='Super users are not allowed to delete themselves.',
-        )
-
-    await session.delete(user_to_delete)
-    await session.commit()
-
-    return {'message': 'User deleted.'}
-
-
-# -- Users routes --
 
 
 @router.post(
     '/singup', status_code=HTTPStatus.CREATED, response_model=UserResponse
 )
-async def singup(session: SessionDep, user_in: UserRequestCreate):
+async def singup(session: SessionDep, user_in: UserRequestCreate) -> Any:
     """
-    User - Create an account.
+    Create an account.
     """
 
-    user_db = await users_service.get_user(
+    user_db = await user_service.get_user(
         session=session, user_email=user_in.email, username=user_in.username
     )
 
@@ -204,15 +48,15 @@ async def singup(session: SessionDep, user_in: UserRequestCreate):
                 detail='Email already exists.',
             )
 
-    new_user = await users_service.add_user(session=session, user=user_in)
+    new_user = await user_service.add_user(session=session, user=user_in)
 
     return new_user
 
 
 @router.get('/me/', response_model=UserResponse)
-async def get_user_info_me(current_user: CurrentUser):
+async def get_user_info_me(current_user: CurrentUser) -> Any:
     """
-    User - Get own account details.
+    Get own account details.
     """
 
     return current_user
@@ -223,12 +67,12 @@ async def update_user_info_me(
     session: SessionDep,
     user_in: UserRequestUpdate,
     current_user: CurrentUser,
-):
+) -> Any:
     """
-    User - Update own account information.
+    Update own account information.
     """
 
-    user_db = await users_service.get_user(
+    user_db = await user_service.get_user(
         session=session, username=user_in.username, user_email=user_in.email
     )
 
@@ -244,7 +88,7 @@ async def update_user_info_me(
                 detail='Email already exists.',
             )
 
-    user_updated = await users_service.update_user_info(
+    user_updated = await user_service.update_user_info(
         session=session, user_info=user_in, user_to_update=current_user
     )
 
@@ -252,15 +96,17 @@ async def update_user_info_me(
 
 
 @router.delete('/me/', response_model=Message)
-async def delete_user_me(session: SessionDep, current_user: CurrentUser):
+async def delete_user_me(
+    session: SessionDep, current_user: CurrentUser
+) -> Message:
     """
-    User - Delete own account.
+    Delete own account.
     """
 
     await session.delete(current_user)
     await session.commit()
 
-    return {'message': 'User deleted.'}
+    return Message(message='User deleted.')
 
 
 @router.patch('/me/change-password', response_model=Message)
@@ -268,9 +114,9 @@ async def update_password_me(
     session: SessionDep,
     passwords: PasswordChange,
     current_user: CurrentUser,
-):
+) -> Any:
     """
-    User - Change own password
+    Change own password
     """
 
     if passwords.password != passwords.password_confirmation:
@@ -278,7 +124,7 @@ async def update_password_me(
             status_code=HTTPStatus.BAD_REQUEST, detail='Passwords dont match.'
         )
 
-    await users_service.change_password(
+    await user_service.change_password(
         session=session,
         user_to_update=current_user,
         password=passwords.password,
@@ -293,12 +139,12 @@ async def update_password_me(
 @router.get('/check-verification-status/{user_id}', response_model=Message)
 async def is_verified(
     session: SessionDep, current_user: CurrentUser, user_id: int
-):
+) -> Message:
     """
-    User - Check if own account is verified.
+    Check if own account is verified.
     """
 
-    user_db = await users_service.get_user_by_id(
+    user_db = await user_service.get_user_by_id(
         session=session, user_id=user_id
     )
 
@@ -312,13 +158,17 @@ async def is_verified(
         )
 
     if user_db.is_verified:
-        return {'message': 'User is already verified.'}
+        return Message(message='User is already verified.')
 
-    return {'message': 'User has not been verified yet.'}
+    return Message(message='User has not been verified yet.')
 
 
 @router.get('/verify-account/', response_model=Message)
-async def verify_account(current_user: CurrentUser):
+async def verify_account(current_user: CurrentUser) -> Message:
+    """
+    Send an email to the user to verify their account.
+    """
+
     email_token = create_url_safe_token(data={'email': current_user.email})
 
     link = f'http://127.0.0.1:8000/users/verify/{email_token}'
@@ -336,11 +186,17 @@ async def verify_account(current_user: CurrentUser):
 
     await email.send_message(message)
 
-    return {'message': f'Email sent to {current_user.email}'}
+    return Message(message=f'Email sent to {current_user.email}')
 
 
-@router.get('/verify/{token}')
-async def verify(session: SessionDep, current_user: CurrentUser, token: str):
+@router.get('/verify/{token}', response_model=Message)
+async def verify(
+    session: SessionDep, current_user: CurrentUser, token: str
+) -> Message:
+    """
+    Verify the user account based on the verification email sent.
+    """
+
     email_token = decode_url_safe_token(token)
 
     if not email_token:
@@ -362,28 +218,32 @@ async def verify(session: SessionDep, current_user: CurrentUser, token: str):
     session.add(user_updated)
     await session.commit()
 
-    return {'message': 'Account verified sucessfully!'}
+    return Message(message='Account verified sucessfully!')
 
 
 @router.post('/test-email', response_model=Message)
-async def test_email(emails: Email):
-    emails = emails.addresses  # type: ignore
+async def test_email(emails: Email) -> Message:
+    recipient_email_addresses = emails.addresses
     html = '<h1>Testing Email</h1>'
     message = create_email_message(
-        recipients=emails,  # type: ignore
+        recipients=recipient_email_addresses,
         subject='Welcome to the test',
-        body=html,  # type: ignore
+        body=html,
     )
     await email.send_message(message)
 
-    return {'message': 'Email sent'}
+    return Message(message='Email sent')
 
 
 # -- Email recovery access routes --
 
 
-@router.get('/recover-access')
-async def recover_access(current_user: CurrentUser):
+@router.get('/recover-access', response_model=Message)
+async def recover_access(current_user: CurrentUser) -> Message:
+    """
+    Recover account access (WIP).
+    """
+
     email_token = create_url_safe_token(data={'email': current_user.email})
 
     link = f'http://127.0.0.1:8000/users/change-password/{email_token}'
@@ -401,16 +261,20 @@ async def recover_access(current_user: CurrentUser):
 
     await email.send_message(message)
 
-    return {'message': f'Email sent to {current_user.email}'}
+    return Message(message=f'Email sent to {current_user.email}')
 
 
-@router.post('/change-password/{token}')
+@router.post('/change-password/{token}', response_model=Message)
 async def change_password_by_email(
     session: SessionDep,
     passwords: PasswordChange,
     current_user: CurrentUser,
     token: str,
-):
+) -> Message:
+    """
+    Change password when account recovery is requested (WIP).
+    """
+
     email_token = decode_url_safe_token(token)
 
     if not email_token:
@@ -432,10 +296,10 @@ async def change_password_by_email(
             status_code=HTTPStatus.BAD_REQUEST, detail='Passwords dont match.'
         )
 
-    await users_service.change_password(
+    await user_service.change_password(
         session=session,
         user_to_update=current_user,
         password=passwords.password,
     )
 
-    return {'message': 'Password has been changed!'}
+    return Message(message='Password has been changed!')

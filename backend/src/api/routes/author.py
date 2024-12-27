@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -21,7 +22,10 @@ router = APIRouter()
         HTTPStatus.UNAUTHORIZED: response_model,
     },
 )
-async def add_author(author_in: AuthorSchema, session: SessionDep):
+async def add_author(author_in: AuthorSchema, session: SessionDep) -> Any:
+    """
+    Adds a new author.
+    """
     author_db = await author_service.get_author_by_name(
         session=session, author_name=author_in.name
     )
@@ -51,7 +55,10 @@ async def add_author(author_in: AuthorSchema, session: SessionDep):
 async def delete_author(
     session: SessionDep,
     author_id: int,
-):
+) -> Message:
+    """
+    Delete an author.
+    """
     author_db = await author_service.get_author_by_id(
         session=session, author_id=author_id
     )
@@ -65,7 +72,7 @@ async def delete_author(
     await session.delete(author_db)
     await session.commit()
 
-    return {'message': 'Author deleted from MADR.'}
+    return Message(message='Author deleted from MADR.')
 
 
 @router.patch(
@@ -81,7 +88,11 @@ async def update_author(
     author_id: int,
     author_in: AuthorSchema,
     session: SessionDep,
-):
+) -> Any:
+    """
+    Update an author's name.
+    """
+
     author_db = await author_service.get_author_by_id(
         session=session, author_id=author_id
     )
@@ -107,7 +118,11 @@ async def update_author(
         HTTPStatus.UNAUTHORIZED: response_model,
     },
 )
-async def get_author_by_id(author_id: int, session: SessionDep):
+async def get_author_by_id(author_id: int, session: SessionDep) -> Any:
+    """
+    Get an author by their ID.
+    """
+
     author_db = await author_service.get_author_by_id(
         session=session, author_id=author_id
     )
@@ -122,12 +137,16 @@ async def get_author_by_id(author_id: int, session: SessionDep):
 
 
 @router.get('/', response_model=AuthorList)
-async def get_author_with_name_like(
+async def get_authors_with_name_like(
     session: SessionDep,
     name: str | None = None,
     limit: int = 20,
     offset: int = 0,
-):
+) -> Any:
+    """
+    Get authors by filtering by name (like search).
+    """
+
     if not name:
         authors_list = await author_service.get_authors_list(
             session=session, offset=offset, limit=limit

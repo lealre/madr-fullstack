@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -7,11 +8,6 @@ from src.schemas.base import Message
 from src.schemas.books import BookList, BookPublic, BookSchema, BookUpdate
 from src.schemas.responses import response_model
 from src.services import author_service, book_service
-from src.services.book_service import (
-    get_book_by_id_from_db,
-    query_paginated_books_from_db,
-    update_book_in_db,
-)
 
 router = APIRouter()
 
@@ -26,7 +22,13 @@ router = APIRouter()
         HTTPStatus.UNAUTHORIZED: response_model,
     },
 )
-async def add_book(session: SessionDep, book_in: BookSchema):
+async def add_book(session: SessionDep, book_in: BookSchema) -> Any:
+    """
+    Add a new book.
+
+    It is necessary to have the author registered beforehand.
+    """
+
     book_db = await book_service.get_book_by_title(
         session=session, book_title=book_in.title
     )
@@ -61,7 +63,11 @@ async def add_book(session: SessionDep, book_in: BookSchema):
         HTTPStatus.UNAUTHORIZED: response_model,
     },
 )
-async def delete_book(session: SessionDep, book_id: int):
+async def delete_book(session: SessionDep, book_id: int) -> Message:
+    """
+    Delete a book.
+    """
+
     book_db = await book_service.get_book_by_id(
         session=session, book_id=book_id
     )
@@ -74,7 +80,7 @@ async def delete_book(session: SessionDep, book_id: int):
     await session.delete(book_db)
     await session.commit()
 
-    return {'message': 'Book deleted from MADR.'}
+    return Message(message='Book deleted from MADR.')
 
 
 @router.patch(
@@ -87,10 +93,24 @@ async def delete_book(session: SessionDep, book_id: int):
 )
 async def update_book(
     book_id: int, book: BookUpdate, session: SessionDep, user: CurrentUser
-):
-    db_book = await update_book_in_db(
-        session=session, book=book, book_id=book_id
+) -> Any:
+    """
+    Update the year of a book by its ID.
+    """
+
+    book_db = await book_service.get_book_by_id(
+        session=session, book_id=book_id
     )
+
+    if not book_db:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail='Book not found in MADR.'
+        )
+
+    db_book = await book_service.update_book_in_db(
+        session=session, book_info=book, book_to_update=book_db
+    )
+
     return db_book
 
 
@@ -102,21 +122,41 @@ async def update_book(
         HTTPStatus.UNAUTHORIZED: response_model,
     },
 )
-async def get_book_by_id(book_id: int, session: SessionDep):
-    db_book = await get_book_by_id_from_db(session=session, book_id=book_id)
-    return db_book
+async def get_book_by_id(book_id: int, session: SessionDep) -> Any:
+    """
+    Get a book by ID.
+    """
+
+    book_db = await book_service.get_book_by_id(
+        session=session, book_id=book_id
+    )
+
+    if not book_db:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail='Book not found in MADR.'
+        )
+
+    return book_db
 
 
 @router.get('/', response_model=BookList)
 async def get_book_like(
     session: SessionDep,
-    name: str | None = None,
+    title: str | None = None,
     year: int | None = None,
     limit: int = 20,
     offset: int = 0,
-):
-    db_books = await query_paginated_books_from_db(
-        session=session, name=name, year=year, limit=limit, offset=offset
+) -> Any:
+    """
+    Get a list of books filtered by title (like search) and/or year.
+    """
+
+    books_list = await book_service.get_books_list(
+        session=session,
+        book_title=title,
+        book_year=year,
+        limit=limit,
+        offset=offset,
     )
 
-    return {'books': db_books}
+    return {'authors': books_list, 'total_results': len(books_list)}
