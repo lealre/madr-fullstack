@@ -28,7 +28,7 @@ async def init_db(session: AsyncSession) -> None:
     if not user:
         hashed_password = get_password_hash(settings.FIRST_SUPERUSER_PASSWORD)
 
-        user_db = User(
+        user_db = User(  # type: ignore[call-arg]
             username=settings.FIRST_SUPERUSER_USERNAME,
             email=settings.FIRST_SUPERUSER_EMAIL,
             password_hash=hashed_password,

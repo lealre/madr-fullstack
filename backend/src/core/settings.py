@@ -31,9 +31,5 @@ class Settings(BaseSettings):
     VALIDATE_CERTS: bool = True
     TEMPLATE_FOLDER: DirectoryPath = Path('src/email/templates')
 
-    GOOGLE_CLIENT_ID: str = ''
-    GOOGLE_CLIENT_SECRET: str = ''
-    GOOGLE_REDIRECT_URI: str = 'http://127.0.0.1:8000/auth/callback/google'
-
 
 settings = Settings()
