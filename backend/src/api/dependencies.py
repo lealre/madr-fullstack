@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Annotated
+from typing import Annotated, AsyncGenerator
 
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
@@ -14,8 +14,8 @@ from src.models import User
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/token')
 
 
-async def get_session():  # pragma: no cover
-    async with AsyncSessionLocal() as session:
+async def get_session() -> AsyncGenerator[AsyncSession, None]:
+    async with AsyncSessionLocal() as session:  # pragma: no cover
         yield session
 
 
@@ -23,7 +23,7 @@ SessionDep = Annotated[AsyncSession, Depends(get_session)]
 TokenDep = Annotated[str, Depends(oauth2_scheme)]
 
 
-async def get_current_user(session: SessionDep, token: TokenDep):
+async def get_current_user(session: SessionDep, token: TokenDep) -> User:
     credentials_exception = HTTPException(
         status_code=HTTPStatus.UNAUTHORIZED,
         detail='Could not validate credentials.',
