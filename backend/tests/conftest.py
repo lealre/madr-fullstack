@@ -2,7 +2,7 @@ import typing
 
 import factory
 import factory.fuzzy
-import pytest_asyncio
+import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
@@ -51,8 +51,15 @@ class MockedUser(UserResponse):
     clean_password: str
 
 
-@pytest_asyncio.fixture(scope='session')
-def postgres_container() -> typing.Generator[PostgresContainer, None, None]:
+@pytest.fixture(scope='session')
+def anyio_backend() -> str:
+    return 'asyncio'
+
+
+@pytest.fixture(scope='session')
+def postgres_container(
+    anyio_backend: typing.Literal['asyncio'],
+) -> typing.Generator[PostgresContainer, None, None]:
     with PostgresContainer('postgres:16', driver='asyncpg') as postgres:
         yield postgres
 
@@ -60,7 +67,7 @@ def postgres_container() -> typing.Generator[PostgresContainer, None, None]:
 BASE_URL = 'http://test'
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def async_session(
     postgres_container: PostgresContainer,
 ) -> typing.AsyncGenerator[AsyncSession, None]:
@@ -82,7 +89,7 @@ async def async_session(
         yield as_session
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def async_client(
     async_session: AsyncSession,
 ) -> typing.AsyncGenerator[AsyncClient, None]:
@@ -97,7 +104,7 @@ async def async_client(
     app.dependency_overrides.clear()
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def superuser_token(
     async_client: AsyncClient, superuser: MockedUser
 ) -> str:
@@ -113,7 +120,7 @@ async def superuser_token(
     return json_response.access_token
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def user_token(async_client: AsyncClient, user: MockedUser) -> str:
     response = await async_client.post(
         '/auth/token',
@@ -124,7 +131,7 @@ async def user_token(async_client: AsyncClient, user: MockedUser) -> str:
     return json_response.access_token
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def superuser(async_session: AsyncSession) -> MockedUser:
     pwd = settings.FIRST_SUPERUSER_PASSWORD
 
@@ -147,7 +154,7 @@ async def superuser(async_session: AsyncSession) -> MockedUser:
     return mocked_superuser
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def user(async_session: AsyncSession) -> MockedUser:
     pwd = 'testest'
 
@@ -165,7 +172,7 @@ async def user(async_session: AsyncSession) -> MockedUser:
     return mocked_user
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def other_user(async_session: AsyncSession) -> User:
     user = UserFactory()
 
@@ -176,7 +183,7 @@ async def other_user(async_session: AsyncSession) -> User:
     return user
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def author(async_session: AsyncSession) -> Author:
     author = AuthorFactory()
 
@@ -187,7 +194,7 @@ async def author(async_session: AsyncSession) -> Author:
     return author
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def book(async_session: AsyncSession, author: Author) -> Book:
     book = BookFactory()
 
