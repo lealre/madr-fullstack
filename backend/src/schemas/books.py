@@ -9,7 +9,7 @@ class BookSchema(BaseModel):
     author_id: int = Field(gt=0)
 
     @field_validator('title')
-    def validate_name(cls, v):
+    def validate_name(cls, v: str) -> str:
         v = v.lower().strip()
         return re.sub(r'\s+', ' ', v)
 

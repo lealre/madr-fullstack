@@ -19,7 +19,7 @@ class SuperUserRequestCreate(UserRequestCreate):
     is_verified: bool = False
 
 
-class SuperUserRequestUpdate(UserBase):
+class SuperUserRequestUpdate(BaseModel):
     username: str | None = None
     email: EmailStr | None = None
     first_name: str | None = None
@@ -28,7 +28,7 @@ class SuperUserRequestUpdate(UserBase):
     is_verified: bool = False
 
 
-class UserRequestUpdate(UserBase):
+class UserRequestUpdate(BaseModel):
     username: str | None = None
     email: EmailStr | None = None
     first_name: str | None = None

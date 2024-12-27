@@ -12,7 +12,9 @@ from src.schemas.users import (
 
 
 async def get_user(
-    session: AsyncSession, user_email: str | None, username: str | None
+    session: AsyncSession,
+    user_email: str | None = None,
+    username: str | None = None,
 ) -> User | None:
     """
     Retrieve a user from the database by username or email.
@@ -82,7 +84,7 @@ async def add_user(
     del user.password
 
     new_user = User(**user.model_dump())
-    new_user.password_hash = hashed_password  
+    new_user.password_hash = hashed_password
 
     session.add(new_user)
     await session.commit()

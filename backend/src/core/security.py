@@ -45,9 +45,9 @@ def create_url_safe_token(data: dict[str, str]) -> str:
     return token
 
 
-def decode_url_safe_token(token: str) -> str | None:
+def decode_url_safe_token(token: str) -> dict[str, Any] | None:
     try:
-        token_data: str = serializer.loads(token)
+        token_data: dict[str, Any] = serializer.loads(token)
         return token_data
     except Exception:
         return None

@@ -4,6 +4,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from src.api.main import api_router
 from src.core.settings import settings
+from src.schemas.base import Message
 
 app = FastAPI()
 
@@ -23,5 +24,5 @@ app.include_router(api_router)
 
 
 @app.get('/')
-def home_root():
-    return {'message': 'Root Endpoint!'}
+def home_root() -> Message:
+    return Message(message='Root Endpoint!')

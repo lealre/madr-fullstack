@@ -7,7 +7,7 @@ class AuthorSchema(BaseModel):
     name: str
 
     @field_validator('name')
-    def validate_name(cls, v):
+    def validate_name(cls, v: str) -> str:
         v = v.lower().strip()
         return re.sub(r'\s+', ' ', v)
 
