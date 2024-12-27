@@ -40,7 +40,6 @@ class UserResponse(UserBase):
     is_superuser: bool
     is_active: bool
     is_verified: bool
-    google_sub: str | None
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -51,11 +50,3 @@ class UserListResponse(BaseModel):
 class PasswordChange(BaseModel):
     password: str
     password_confirmation: str
-
-
-class GoogleUser(BaseModel):
-    sub: int
-    email: EmailStr
-    email_verified: bool
-    given_name: str
-    family_name: str
