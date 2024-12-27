@@ -53,7 +53,7 @@ async def singup(session: SessionDep, user_in: UserRequestCreate) -> Any:
     return new_user
 
 
-@router.get('/me/', response_model=UserResponse)
+@router.get('/me', response_model=UserResponse)
 async def get_user_info_me(current_user: CurrentUser) -> Any:
     """
     Get own account details.
@@ -62,7 +62,7 @@ async def get_user_info_me(current_user: CurrentUser) -> Any:
     return current_user
 
 
-@router.patch('/me/', response_model=UserResponse)
+@router.patch('/me', response_model=UserResponse)
 async def update_user_info_me(
     session: SessionDep,
     user_in: UserRequestUpdate,
@@ -95,7 +95,7 @@ async def update_user_info_me(
     return user_updated
 
 
-@router.delete('/me/', response_model=Message)
+@router.delete('/me', response_model=Message)
 async def delete_user_me(
     session: SessionDep, current_user: CurrentUser
 ) -> Message:
@@ -163,7 +163,7 @@ async def is_verified(
     return Message(message='User has not been verified yet.')
 
 
-@router.get('/verify-account/', response_model=Message)
+@router.get('/verify-account', response_model=Message)
 async def verify_account(current_user: CurrentUser) -> Message:
     """
     Send an email to the user to verify their account.

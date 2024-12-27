@@ -13,7 +13,7 @@ router = APIRouter()
 
 
 @router.post(
-    '/',
+    '',
     response_model=AuthorPublic,
     status_code=HTTPStatus.CREATED,
     dependencies=[Depends(get_current_user)],
@@ -136,7 +136,7 @@ async def get_author_by_id(author_id: int, session: SessionDep) -> Any:
     return author_db
 
 
-@router.get('/', response_model=AuthorList)
+@router.get('', response_model=AuthorList)
 async def get_authors_with_name_like(
     session: SessionDep,
     name: str | None = None,

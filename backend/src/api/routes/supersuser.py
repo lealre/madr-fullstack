@@ -53,7 +53,7 @@ async def get_user_by_id(session: SessionDep, user_id: int) -> Any:
     return user_db
 
 
-@router.post('/', response_model=UserResponse, status_code=HTTPStatus.CREATED)
+@router.post('', response_model=UserResponse, status_code=HTTPStatus.CREATED)
 async def create_user(
     session: SessionDep, user_in: SuperUserRequestCreate
 ) -> Any:

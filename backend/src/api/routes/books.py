@@ -13,7 +13,7 @@ router = APIRouter()
 
 
 @router.post(
-    '/',
+    '',
     response_model=BookPublic,
     status_code=HTTPStatus.CREATED,
     dependencies=[Depends(get_current_user)],
@@ -139,7 +139,7 @@ async def get_book_by_id(book_id: int, session: SessionDep) -> Any:
     return book_db
 
 
-@router.get('/', response_model=BookList)
+@router.get('', response_model=BookList)
 async def get_book_like(
     session: SessionDep,
     title: str | None = None,
@@ -159,4 +159,4 @@ async def get_book_like(
         offset=offset,
     )
 
-    return {'authors': books_list, 'total_results': len(books_list)}
+    return {'books': books_list, 'total_results': len(books_list)}
