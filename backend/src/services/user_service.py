@@ -83,8 +83,9 @@ async def add_user(
     hashed_password = get_password_hash(user.password)
     del user.password
 
-    new_user = User(**user.model_dump())
-    new_user.password_hash = hashed_password
+    user_attrs = user.model_dump()
+    user_attrs['password_hash'] = hashed_password
+    new_user = User(**user_attrs)
 
     session.add(new_user)
     await session.commit()
