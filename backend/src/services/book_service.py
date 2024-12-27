@@ -1,11 +1,8 @@
-from http import HTTPStatus
-
-from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models import Book
-from src.schemas.books import BookSchema
+from src.schemas.books import BookSchema, BookUpdate
 
 
 async def get_book_by_id(session: AsyncSession, book_id: int) -> Book | None:
@@ -35,11 +32,11 @@ async def get_book_by_title(
     title exists.
     """
 
-    book_db = await session.scalar(select(Book).where(Book.title == book_title))
+    book_db = await session.scalar(
+        select(Book).where(Book.title == book_title)
+    )
 
     return book_db
-
-
 
 
 async def add_book(session: AsyncSession, book: BookSchema) -> Book:
@@ -63,50 +60,67 @@ async def add_book(session: AsyncSession, book: BookSchema) -> Book:
 
 
 async def update_book_in_db(
-    session: AsyncSession, book_id: int, book: BookSchema
-):
-    db_book = await session.scalar(select(Book).where(Book.id == book_id))
+    session: AsyncSession, book_info: BookUpdate, book_to_update: Book
+) -> Book:
+    """
+    Update an existing book record in the database.
 
-    if not db_book:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='Book not found in MADR.'
-        )
+    :param session: The asynchronous database session used for the operation.
+    :param book_info: The schema object containing the updated details for
+    the book.
+    :param book_to_update: The existing Book object to be updated.
+    :return: The updated Book object after the changes have been committed
+    and refreshed.
+    """
 
-    db_book.year = book.year
+    for key, value in book_info.model_dump(exclude_unset=True).items():
+        setattr(book_to_update, key, value)
 
-    session.add(db_book)
+    session.add(book_to_update)
     await session.commit()
-    await session.refresh(db_book)
+    await session.refresh(book_to_update)
 
-    return db_book
+    return book_to_update
 
 
-async def get_book_by_id_from_db(session: AsyncSession, book_id: int):
-    db_book = await session.scalar(select(Book).where(Book.id == book_id))
+async def get_books_list(
+    session: AsyncSession,
+    limit: int,
+    offset: int,
+    book_title: str | None = None,
+    book_year: int | None = None,
+) -> list[Book]:
+    """
+    Retrieve a paginated list of books from the database, optionally filtered
+    by title and/or year.
 
-    if not db_book:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='Book not found in MADR.'
+    :param session: The asynchronous database session used for the query.
+    :param limit: The maximum number of books to retrieve.
+    :param offset: The number of books to skip before starting to retrieve
+    results.
+    :param book_title: An optional substring to filter books by their title
+    (default is None).
+    :param book_year: An optional year to filter books by their publication
+    year (default is None).
+    :return: A list of Book objects that match the filters, or None if no
+    filters are provided or no books match.
+    """
+
+    if book_title and book_year:
+        query = select(Book).where(
+            and_(Book.title.contains(book_title), Book.year == book_year)
         )
 
-    return db_book
+    elif book_title:
+        query = select(Book).where(Book.title.contains(book_title))
 
+    elif book_year:
+        query = select(Book).where(Book.year == book_year)
 
-async def query_paginated_books_from_db(
-    session: AsyncSession,
-    name: str | None = None,
-    year: int | None = None,
-    limit: int = 20,
-    offset: int = 0,
-):
-    query = select(Book)
+    else:
+        return []
 
-    if name:
-        query = query.filter(Book.title.contains(name))
+    query = query.limit(limit).offset(offset)
+    books_db = await session.scalars(query)
 
-    if year:
-        query = query.filter(Book.year == year)
-
-    db_books = await session.scalars(query.limit(limit).offset(offset))
-
-    return db_books
+    return list(books_db.all())
