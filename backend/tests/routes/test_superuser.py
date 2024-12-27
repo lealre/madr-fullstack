@@ -1,18 +1,26 @@
 from http import HTTPStatus
+from typing import Callable
 
 import pytest
+from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.services import users_service
-from tests.conftest import UserFactory
+from src.models import User
+from src.services import user_service
+from tests.conftest import MockedUser, UserFactory
 
 
-async def test_get_all_users(async_client, async_session, superuser_token):
+async def test_get_all_users(
+    async_client: AsyncClient,
+    async_session: AsyncSession,
+    superuser_token: str,
+) -> None:
     expected_length = 5
     async_session.add_all(UserFactory.create_batch(expected_length))
     await async_session.commit()
 
     response = await async_client.get(
-        '/users/all',
+        '/superuser/all',
         headers={'Authorization': f'Bearer {superuser_token}'},
     )
 
@@ -22,13 +30,13 @@ async def test_get_all_users(async_client, async_session, superuser_token):
 
 
 async def test_get_all_users_access_denied_if_not_superuser(
-    async_client, async_session, user_token
-):
+    async_client: AsyncClient, async_session: AsyncSession, user_token: str
+) -> None:
     async_session.add_all(UserFactory.create_batch(5))
     await async_session.commit()
 
     response = await async_client.get(
-        '/users/all',
+        '/superuser/all',
         headers={'Authorization': f'Bearer {user_token}'},
     )
 
@@ -36,9 +44,11 @@ async def test_get_all_users_access_denied_if_not_superuser(
     assert response.json() == {'detail': 'Insufficient permissions.'}
 
 
-async def test_get_user_by_id(async_client, superuser_token, user):
+async def test_get_user_by_id(
+    async_client: AsyncClient, superuser_token: str, user: MockedUser
+) -> None:
     response = await async_client.get(
-        f'/users/{user.id}',
+        f'/superuser/{user.id}',
         headers={'Authorization': f'Bearer {superuser_token}'},
     )
 
@@ -52,13 +62,14 @@ async def test_get_user_by_id(async_client, superuser_token, user):
         'is_superuser': user.is_superuser,
         'is_active': user.is_active,
         'is_verified': user.is_verified,
-        'google_sub': user.google_sub,
     }
 
 
-async def test_get_user_by_id_not_found(async_client, superuser_token, user):
+async def test_get_user_by_id_not_found(
+    async_client: AsyncClient, superuser_token: str, user: MockedUser
+) -> None:
     response = await async_client.get(
-        f'/users/{user.id + 300}',
+        f'/superuser/{user.id + 300}',
         headers={'Authorization': f'Bearer {superuser_token}'},
     )
 
@@ -67,10 +78,10 @@ async def test_get_user_by_id_not_found(async_client, superuser_token, user):
 
 
 async def test_get_user_by_id_access_denied_if_not_superuser(
-    async_client, user_token, user
-):
+    async_client: AsyncClient, user_token: str, user: MockedUser
+) -> None:
     response = await async_client.get(
-        f'/users/{user.id}',
+        f'/superuser/{user.id}',
         headers={'Authorization': f'Bearer {user_token}'},
     )
 
@@ -78,9 +89,11 @@ async def test_get_user_by_id_access_denied_if_not_superuser(
     assert response.json() == {'detail': 'Insufficient permissions.'}
 
 
-async def test_create_user(async_client, superuser_token):
+async def test_create_user(
+    async_client: AsyncClient, superuser_token: str
+) -> None:
     response = await async_client.post(
-        '/users/',
+        '/superuser/',
         headers={'Authorization': f'Bearer {superuser_token}'},
         json={
             'username': 'testname',
@@ -100,7 +113,6 @@ async def test_create_user(async_client, superuser_token):
         'is_superuser': False,
         'is_active': True,
         'is_verified': True,
-        'google_sub': None,
     }
 
 
@@ -126,16 +138,16 @@ async def test_create_user(async_client, superuser_token):
     ],
 )
 async def test_create_user_with_credentials_already_in_db(
-    payload_creation,
-    response_detail_message,
-    async_client,
-    superuser_token,
-    user,
-):
+    payload_creation: Callable[[MockedUser], dict[str, str]],
+    response_detail_message: str,
+    async_client: AsyncClient,
+    superuser_token: str,
+    user: MockedUser,
+) -> None:
     payload = payload_creation(user)
 
     response = await async_client.post(
-        '/users/',
+        '/superuser/',
         headers={'Authorization': f'Bearer {superuser_token}'},
         json=payload,
     )
@@ -145,10 +157,10 @@ async def test_create_user_with_credentials_already_in_db(
 
 
 async def test_create_user_access_denied_if_not_superuser(
-    async_client, user_token
-):
+    async_client: AsyncClient, user_token: str
+) -> None:
     response = await async_client.post(
-        '/users/',
+        '/superuser/',
         headers={'Authorization': f'Bearer {user_token}'},
         json={
             'username': 'testname',
@@ -170,10 +182,14 @@ async def test_create_user_access_denied_if_not_superuser(
     ],
 )
 async def test_update_user_info(
-    payload_key, payload_value, async_client, superuser_token, user
-):
+    payload_key: str,
+    payload_value: str,
+    async_client: AsyncClient,
+    superuser_token: str,
+    user: MockedUser,
+) -> None:
     response = await async_client.patch(
-        f'/users/{user.id}',
+        f'/superuser/{user.id}',
         headers={'Authorization': f'Bearer {superuser_token}'},
         json={payload_key: payload_value},
     )
@@ -183,10 +199,10 @@ async def test_update_user_info(
 
 
 async def test_update_user_info_user_not_found(
-    async_client, superuser_token, user
-):
+    async_client: AsyncClient, superuser_token: str, user: MockedUser
+) -> None:
     response = await async_client.patch(
-        f'/users/{user.id + 300}',
+        f'/superuser/{user.id + 300}',
         headers={'Authorization': f'Bearer {superuser_token}'},
         json={'usename': 'test'},
     )
@@ -215,17 +231,17 @@ async def test_update_user_info_user_not_found(
     ],
 )
 async def test_update_user_info_with_credentials_already_in_db(  # noqa: PLR0917, PLR0913
-    update_payload,
-    response_detail_message,
-    async_client,
-    user,
-    superuser_token,
-    other_user,
-):
+    update_payload: Callable[[User], dict[str, str]],
+    response_detail_message: str,
+    async_client: AsyncClient,
+    user: MockedUser,
+    superuser_token: str,
+    other_user: User,
+) -> None:
     payload = update_payload(other_user)
 
     response = await async_client.patch(
-        f'/users/{user.id}',
+        f'/superuser/{user.id}',
         headers={'Authorization': f'Bearer {superuser_token}'},
         json=payload,
     )
@@ -235,10 +251,10 @@ async def test_update_user_info_with_credentials_already_in_db(  # noqa: PLR0917
 
 
 async def test_update_user_info_denied_if_not_superuser(
-    async_client, user_token, user
-):
+    async_client: AsyncClient, user_token: str, user: MockedUser
+) -> None:
     response = await async_client.patch(
-        f'/users/{user.id}',
+        f'/superuser/{user.id}',
         headers={'Authorization': f'Bearer {user_token}'},
         json={
             'is_verified': True,
@@ -249,25 +265,32 @@ async def test_update_user_info_denied_if_not_superuser(
     assert response.json() == {'detail': 'Insufficient permissions.'}
 
 
-async def test_delete_user(async_client, async_session, superuser_token, user):
+async def test_delete_user(
+    async_client: AsyncClient,
+    async_session: AsyncSession,
+    superuser_token: str,
+    user: MockedUser,
+) -> None:
     response = await async_client.delete(
-        f'/users/{user.id}',
+        f'/superuser/{user.id}',
         headers={'Authorization': f'Bearer {superuser_token}'},
     )
 
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {'message': 'User deleted.'}
 
-    user_excluded = await users_service.get_user_by_id(
+    user_excluded = await user_service.get_user_by_id(
         session=async_session, user_id=user.id
     )
 
     assert not user_excluded
 
 
-async def test_delete_user_not_found(async_client, superuser_token, user):
+async def test_delete_user_not_found(
+    async_client: AsyncClient, superuser_token: str, user: MockedUser
+) -> None:
     response = await async_client.delete(
-        f'/users/{user.id + 300}',
+        f'/superuser/{user.id + 300}',
         headers={'Authorization': f'Bearer {superuser_token}'},
     )
 
@@ -276,10 +299,10 @@ async def test_delete_user_not_found(async_client, superuser_token, user):
 
 
 async def test_delete_user_denied_if_not_superuser(
-    async_client, user_token, other_user
-):
+    async_client: AsyncClient, user_token: str, other_user: User
+) -> None:
     response = await async_client.delete(
-        f'/users/{other_user.id}',
+        f'/superuser/{other_user.id}',
         headers={'Authorization': f'Bearer {user_token}'},
     )
 
@@ -288,10 +311,10 @@ async def test_delete_user_denied_if_not_superuser(
 
 
 async def test_delete_superuser_denied(
-    async_client, superuser_token, superuser
-):
+    async_client: AsyncClient, superuser_token: str, superuser: MockedUser
+) -> None:
     response = await async_client.delete(
-        f'/users/{superuser.id}',
+        f'/superuser/{superuser.id}',
         headers={'Authorization': f'Bearer {superuser_token}'},
     )
 
