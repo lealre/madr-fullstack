@@ -24,11 +24,12 @@ async def get_user(
     :return: The user object if found, otherwise None.
     """
 
-    user_db = await session.scalar(
-        select(User).where(
-            (User.username == username) | (User.email == user_email)
+    async with session:
+        user_db = await session.scalar(
+            select(User).where(
+                (User.username == username) | (User.email == user_email)
+            )
         )
-    )
 
     return user_db
 
@@ -41,8 +42,8 @@ async def get_user_by_id(session: AsyncSession, user_id: int) -> User | None:
     :param user_id: The ID of the user to retrieve.
     :return: The user object if found, otherwise None.
     """
-
-    user = await session.scalar(select(User).where(User.id == user_id))
+    async with session:
+        user = await session.scalar(select(User).where(User.id == user_id))
 
     return user
 
@@ -60,8 +61,11 @@ async def get_users_list(
     :return: A list of user objects.
     """
 
-    users_db = await session.scalars(select(User).offset(offset).limit(limit))
-    all_users = list(users_db.all())
+    async with session:
+        users_db = await session.scalars(
+            select(User).offset(offset).limit(limit)
+        )
+        all_users = list(users_db.all())
 
     return all_users
 
@@ -87,9 +91,8 @@ async def add_user(
     user_attrs['password_hash'] = hashed_password
     new_user = User(**user_attrs)
 
-    session.add(new_user)
-    await session.commit()
-    await session.refresh(new_user)
+    async with session.begin():
+        session.add(new_user)
 
     return new_user
 
@@ -117,9 +120,8 @@ async def update_user_info(
     for key, value in user_info.model_dump(exclude_unset=True).items():
         setattr(user_to_update, key, value)
 
-    session.add(user_to_update)
-    await session.commit()
-    await session.refresh(user_to_update)
+    async with session.begin():
+        session.add(user_to_update)
 
     return user_to_update
 
@@ -143,8 +145,7 @@ async def change_password(
     hashed_password = get_password_hash(password)
     user_to_update.password_hash = hashed_password
 
-    session.add(user_to_update)
-    await session.commit()
-    await session.refresh(user_to_update)
+    async with session.begin():
+        session.add(user_to_update)
 
     return user_to_update

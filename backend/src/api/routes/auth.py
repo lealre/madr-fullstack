@@ -19,10 +19,10 @@ async def access_token(
     """
     Generate an access token for a user.
     """
-
-    user = await session.scalar(
-        select(User).where(User.email == form_data.username)
-    )
+    async with session.begin():
+        user = await session.scalar(
+            select(User).where(User.email == form_data.username)
+        )
 
     if not user:
         raise HTTPException(

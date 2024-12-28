@@ -9,12 +9,10 @@ from src.core.security import get_password_hash
 from src.core.settings import settings
 from src.models import User
 
-engine = create_async_engine(settings.DATABASE_URL, future=True, echo=True)
+engine = create_async_engine(settings.DATABASE_URL, echo=True)
 
 AsyncSessionLocal = async_sessionmaker(
-    autocommit=False,
     expire_on_commit=False,
-    autoflush=True,
     bind=engine,
     class_=AsyncSession,
 )

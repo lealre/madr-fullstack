@@ -1,4 +1,4 @@
-from sqlalchemy import and_, select
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models import Book
@@ -14,8 +14,8 @@ async def get_book_by_id(session: AsyncSession, book_id: int) -> Book | None:
     :return: The Book object if found, or None if no book with the specified
     ID exists.
     """
-
-    book_db = await session.scalar(select(Book).where(Book.id == book_id))
+    async with session:
+        book_db = await session.scalar(select(Book).where(Book.id == book_id))
 
     return book_db
 
@@ -32,9 +32,10 @@ async def get_book_by_title(
     title exists.
     """
 
-    book_db = await session.scalar(
-        select(Book).where(Book.title == book_title)
-    )
+    async with session:
+        book_db = await session.scalar(
+            select(Book).where(Book.title == book_title)
+        )
 
     return book_db
 
@@ -52,9 +53,8 @@ async def add_book(session: AsyncSession, book: BookSchema) -> Book:
 
     new_book = Book(**book.model_dump())
 
-    session.add(new_book)
-    await session.commit()
-    await session.refresh(new_book)
+    async with session.begin():
+        session.add(new_book)
 
     return new_book
 
@@ -76,9 +76,8 @@ async def update_book_in_db(
     for key, value in book_info.model_dump(exclude_unset=True).items():
         setattr(book_to_update, key, value)
 
-    session.add(book_to_update)
-    await session.commit()
-    await session.refresh(book_to_update)
+    async with session.begin():
+        session.add(book_to_update)
 
     return book_to_update
 
@@ -89,7 +88,7 @@ async def get_books_list(
     offset: int,
     book_title: str | None = None,
     book_year: int | None = None,
-) -> list[Book]:
+) -> tuple[list[Book], int]:
     """
     Retrieve a paginated list of books from the database, optionally filtered
     by title and/or year.
@@ -106,21 +105,23 @@ async def get_books_list(
     filters are provided or no books match.
     """
 
+    async with session:
+        query_rows = select(func.count(Book.id))
+        total_count = await session.scalar(query_rows)
+
     if book_title and book_year:
         query = select(Book).where(
             and_(Book.title.contains(book_title), Book.year == book_year)
         )
-
     elif book_title:
         query = select(Book).where(Book.title.contains(book_title))
-
     elif book_year:
         query = select(Book).where(Book.year == book_year)
-
     else:
-        return []
+        query = select(Book)
 
-    query = query.limit(limit).offset(offset)
-    books_db = await session.scalars(query)
+    async with session:
+        books_db = await session.scalars(query.limit(limit).offset(offset))
+        authors_list = books_db.all()
 
-    return list(books_db.all())
+    return list(authors_list), total_count or 0

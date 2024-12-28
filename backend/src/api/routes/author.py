@@ -147,15 +147,8 @@ async def get_authors_with_name_like(
     Get authors by filtering by name (like search).
     """
 
-    if not name:
-        authors_list = await author_service.get_authors_list(
-            session=session, offset=offset, limit=limit
-        )
-
-        return {'authors': authors_list, 'total_results': len(authors_list)}
-
-    authors_list = await author_service.get_authors_name_like(
+    authors_list, total_rows_db = await author_service.get_authors_name_like(
         session=session, offset=offset, limit=limit, author_name=name
     )
 
-    return {'authors': authors_list, 'total_results': len(authors_list)}
+    return {'authors': authors_list, 'total_results': total_rows_db}

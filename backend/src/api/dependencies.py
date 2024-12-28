@@ -42,7 +42,8 @@ async def get_current_user(session: SessionDep, token: TokenDep) -> User:
     except PyJWTError:
         raise credentials_exception
 
-    user_db = await session.scalar(select(User).where(User.email == email))
+    async with session:
+        user_db = await session.scalar(select(User).where(User.email == email))
 
     if not user_db:
         raise credentials_exception
