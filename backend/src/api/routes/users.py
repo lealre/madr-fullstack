@@ -31,7 +31,6 @@ async def singup(session: SessionDep, user_in: UserRequestCreate) -> Any:
     """
     Create an account.
     """
-
     user_db = await user_service.get_user(
         session=session, user_email=user_in.email, username=user_in.username
     )
@@ -58,7 +57,6 @@ async def get_user_info_me(current_user: CurrentUser) -> Any:
     """
     Get own account details.
     """
-
     return current_user
 
 
@@ -71,7 +69,6 @@ async def update_user_info_me(
     """
     Update own account information.
     """
-
     user_db = await user_service.get_user(
         session=session, username=user_in.username, user_email=user_in.email
     )
@@ -102,9 +99,8 @@ async def delete_user_me(
     """
     Delete own account.
     """
-
-    await session.delete(current_user)
-    await session.commit()
+    async with session.begin():
+        await session.delete(current_user)
 
     return Message(message='User deleted.')
 
@@ -143,7 +139,6 @@ async def is_verified(
     """
     Check if own account is verified.
     """
-
     user_db = await user_service.get_user_by_id(
         session=session, user_id=user_id
     )
@@ -168,7 +163,6 @@ async def verify_account(current_user: CurrentUser) -> Message:
     """
     Send an email to the user to verify their account.
     """
-
     email_token = create_url_safe_token(data={'email': current_user.email})
 
     link = f'http://127.0.0.1:8000/users/verify/{email_token}'
@@ -196,7 +190,6 @@ async def verify(
     """
     Verify the user account based on the verification email sent.
     """
-
     email_token = decode_url_safe_token(token)
 
     if not email_token:
@@ -243,7 +236,6 @@ async def recover_access(current_user: CurrentUser) -> Message:
     """
     Recover account access (WIP).
     """
-
     email_token = create_url_safe_token(data={'email': current_user.email})
 
     link = f'http://127.0.0.1:8000/users/change-password/{email_token}'
@@ -274,7 +266,6 @@ async def change_password_by_email(
     """
     Change password when account recovery is requested (WIP).
     """
-
     email_token = decode_url_safe_token(token)
 
     if not email_token:

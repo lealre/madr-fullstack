@@ -28,7 +28,6 @@ async def add_book(session: SessionDep, book_in: BookSchema) -> Any:
 
     It is necessary to have the author registered beforehand.
     """
-
     book_db = await book_service.get_book_by_title(
         session=session, book_title=book_in.title
     )
@@ -67,7 +66,6 @@ async def delete_book(session: SessionDep, book_id: int) -> Message:
     """
     Delete a book.
     """
-
     book_db = await book_service.get_book_by_id(
         session=session, book_id=book_id
     )
@@ -97,7 +95,6 @@ async def update_book(
     """
     Update the year of a book by its ID.
     """
-
     book_db = await book_service.get_book_by_id(
         session=session, book_id=book_id
     )
@@ -126,7 +123,6 @@ async def get_book_by_id(book_id: int, session: SessionDep) -> Any:
     """
     Get a book by ID.
     """
-
     book_db = await book_service.get_book_by_id(
         session=session, book_id=book_id
     )
@@ -140,7 +136,7 @@ async def get_book_by_id(book_id: int, session: SessionDep) -> Any:
 
 
 @router.get('', response_model=BookList)
-async def get_book_like(
+async def get_books_like(
     session: SessionDep,
     title: str | None = None,
     year: int | None = None,
@@ -150,8 +146,7 @@ async def get_book_like(
     """
     Get a list of books filtered by title (like search) and/or year.
     """
-
-    books_list = await book_service.get_books_list(
+    books, total_results = await book_service.get_books_list(
         session=session,
         book_title=title,
         book_year=year,
@@ -159,4 +154,4 @@ async def get_book_like(
         offset=offset,
     )
 
-    return {'books': books_list, 'total_results': len(books_list)}
+    return {'books': books, 'total_results': total_results}

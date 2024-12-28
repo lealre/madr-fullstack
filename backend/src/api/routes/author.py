@@ -92,7 +92,6 @@ async def update_author(
     """
     Update an author's name.
     """
-
     author_db = await author_service.get_author_by_id(
         session=session, author_id=author_id
     )
@@ -122,7 +121,6 @@ async def get_author_by_id(author_id: int, session: SessionDep) -> Any:
     """
     Get an author by their ID.
     """
-
     author_db = await author_service.get_author_by_id(
         session=session, author_id=author_id
     )
@@ -146,8 +144,7 @@ async def get_authors_with_name_like(
     """
     Get authors by filtering by name (like search).
     """
-
-    authors_list, total_rows_db = await author_service.get_authors_name_like(
+    authors_list, total_rows_db = await author_service.get_authors_list(
         session=session, offset=offset, limit=limit, author_name=name
     )
 

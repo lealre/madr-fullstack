@@ -27,7 +27,6 @@ async def read_users(
     """
     Retrieve all user accounts.
     """
-
     users = await user_service.get_users_list(
         session=session, offset=offset, limit=limit
     )
@@ -40,7 +39,6 @@ async def get_user_by_id(session: SessionDep, user_id: int) -> Any:
     """
     Get account by ID.
     """
-
     user_db = await user_service.get_user_by_id(
         session=session, user_id=user_id
     )
@@ -60,7 +58,6 @@ async def create_user(
     """
     Create a user account.
     """
-
     user_db = await user_service.get_user(
         session=session, user_email=user_in.email, username=user_in.username
     )
@@ -89,7 +86,6 @@ async def update_user_info(
     """
     Update a user's account info.
     """
-
     user_to_update = await user_service.get_user_by_id(
         session=session, user_id=user_id
     )
@@ -129,7 +125,6 @@ async def delete_user(
     """
     Delete a user account by ID.
     """
-
     user_to_delete = await user_service.get_user_by_id(
         session=session, user_id=user_id
     )

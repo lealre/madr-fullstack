@@ -46,7 +46,6 @@ async def refresh_access_token(user: CurrentUser) -> Token:
     """
     Refreshes the access token for an authenticated user.
     """
-
     new_access_token = create_access_token(data={'sub': user.email})
 
     return Token(access_token=new_access_token, token_type='bearer')
