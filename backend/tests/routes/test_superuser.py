@@ -93,7 +93,7 @@ async def test_create_user(
     async_client: AsyncClient, superuser_token: str
 ) -> None:
     response = await async_client.post(
-        '/superuser/',
+        '/superuser',
         headers={'Authorization': f'Bearer {superuser_token}'},
         json={
             'username': 'testname',
@@ -147,7 +147,7 @@ async def test_create_user_with_credentials_already_in_db(
     payload = payload_creation(user)
 
     response = await async_client.post(
-        '/superuser/',
+        '/superuser',
         headers={'Authorization': f'Bearer {superuser_token}'},
         json=payload,
     )
@@ -160,7 +160,7 @@ async def test_create_user_access_denied_if_not_superuser(
     async_client: AsyncClient, user_token: str
 ) -> None:
     response = await async_client.post(
-        '/superuser/',
+        '/superuser',
         headers={'Authorization': f'Bearer {user_token}'},
         json={
             'username': 'testname',

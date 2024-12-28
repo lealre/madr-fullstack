@@ -100,7 +100,7 @@ async def test_delete_book_not_found(
     async_client: AsyncClient, user_token: str, book: Book
 ) -> None:
     response = await async_client.delete(
-        f'/book/{10}', headers={'Authorization': f'Bearer {user_token}'}
+        '/book/10', headers={'Authorization': f'Bearer {user_token}'}
     )
 
     assert response.status_code == HTTPStatus.NOT_FOUND
@@ -125,8 +125,8 @@ async def test_patch_book(
     input_year = 2000
     book = BookFactory(year=input_year)
 
-    async_session.add(book)
-    await async_session.commit()
+    async with async_session.begin():
+        async_session.add(book)
 
     year_expected = 2024
 
@@ -151,7 +151,7 @@ async def test_patch_book_not_found(
     async_client: AsyncClient, user_token: str, book: Book
 ) -> None:
     response = await async_client.patch(
-        f'/book/{10}',
+        '/book/10',
         headers={'Authorization': f'Bearer {user_token}'},
         json={'year': 2000},
     )
@@ -163,7 +163,7 @@ async def test_patch_book_not_found(
 async def test_patch_book_not_authenticated(
     async_client: AsyncClient, book: Book
 ) -> None:
-    response = await async_client.patch(f'/book/{10}', json={'year': 2000})
+    response = await async_client.patch('/book/10', json={'year': 2000})
 
     assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {'detail': 'Not authenticated'}
@@ -184,91 +184,105 @@ async def test_get_book_by_id(async_client: AsyncClient, book: Book) -> None:
 async def test_get_book_by_id_not_found(
     async_client: AsyncClient, book: Book
 ) -> None:
-    response = await async_client.get(f'/book/{10}')
+    response = await async_client.get('/book/10')
 
     assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {'detail': 'Book not found in MADR.'}
 
 
 async def test_list_books_empty(async_client: AsyncClient) -> None:
+    expected_results = 0
     response = await async_client.get('/book')
 
     assert response.json()['books'] == []
+    assert response.json()['total_results'] == expected_results
 
 
 async def test_list_books_filter_name_should_return_5_books(
     async_client: AsyncClient, async_session: AsyncSession, author: Author
 ) -> None:
     expected_books = 5
-    async_session.add_all(BookFactory.create_batch(5))
-    books_with_title = BookFactory.create_batch(5, title='title')
-    for n, book in enumerate(books_with_title):
-        book.title = f'title_{n}'
-    async_session.add_all(books_with_title)
-    await async_session.commit()
+    expected_results = 10
+    async with async_session.begin():
+        async_session.add_all(BookFactory.create_batch(5))
+        books_with_title = BookFactory.create_batch(5, title='title')
+        for n, book in enumerate(books_with_title):
+            book.title = f'title_{n}'
+        async_session.add_all(books_with_title)
 
-    response = await async_client.get('/book/?title=title')
+    response = await async_client.get('/book?title=title')
 
-    assert response.json()['total_results'] == expected_books
+    assert len(response.json()['books']) == expected_books
+    assert response.json()['total_results'] == expected_results
 
 
 async def test_list_books_filter_name_should_return_empty(
     async_client: AsyncClient, async_session: AsyncSession, author: Author
 ) -> None:
-    async_session.add_all(BookFactory.create_batch(5))
-    await async_session.commit()
+    expected_results = 5
+    async with async_session.begin():
+        async_session.add_all(BookFactory.create_batch(5))
 
-    response = await async_client.get('/book/?title=title')
+    response = await async_client.get('/book?title=title')
 
     assert response.json()['books'] == []
+    assert response.json()['total_results'] == expected_results
 
 
 async def test_list_books_filter_year_should_return_5_books(
     async_client: AsyncClient, async_session: AsyncSession, author: Author
 ) -> None:
     expected_books = 5
-    async_session.add_all(BookFactory.create_batch(5, year=2000))
-    async_session.add_all(BookFactory.create_batch(5, year=2024))
-    await async_session.commit()
+    expected_results = 10
+    async with async_session.begin():
+        async_session.add_all(BookFactory.create_batch(5, year=2000))
+        async_session.add_all(BookFactory.create_batch(5, year=2024))
 
-    response = await async_client.get('/book/?year=2000')
+    response = await async_client.get('/book?year=2000')
 
     assert len(response.json()['books']) == expected_books
+    assert response.json()['total_results'] == expected_results
 
 
 async def test_list_books_filter_year_should_return_empty(
     async_client: AsyncClient, async_session: AsyncSession, author: Author
 ) -> None:
-    async_session.add_all(BookFactory.create_batch(5, year=2000))
-    await async_session.commit()
+    expected_results = 5
+    async with async_session.begin():
+        async_session.add_all(BookFactory.create_batch(5, year=2000))
 
-    response = await async_client.get('/book/?year=2024')
+    response = await async_client.get('/book?year=2024')
 
     assert response.json()['books'] == []
+    assert response.json()['total_results'] == expected_results
 
 
 async def test_list_books_filter_combined_should_return_5_books(
     async_client: AsyncClient, async_session: AsyncSession, author: Author
 ) -> None:
     expected_books = 5
+    expected_results = 7
     books = BookFactory.create_batch(7, year=2000)
     books[-1].title = 'title'
     books[0].year = 2024
-    async_session.add_all(books)
-    await async_session.commit()
+    async with async_session.begin():
+        async_session.add_all(books)
 
     response = await async_client.get('/book?year=2000&title=oo')
 
     assert len(response.json()['books']) == expected_books
+    assert response.json()['total_results'] == expected_results
 
 
 async def test_list_books_pagination_should_return_20_books(
     async_client: AsyncClient, async_session: AsyncSession, author: Author
 ) -> None:
     expected_books = 20
-    async_session.add_all(BookFactory.create_batch(25, year=2000))
-    await async_session.commit()
+    expected_results = 25
+    async with async_session.begin():
+        async_session.add_all(BookFactory.create_batch(25, year=2000))
 
     response = await async_client.get('/book?year=2000')
 
     assert len(response.json()['books']) == expected_books
+    assert response.json()['total_results'] == expected_results

@@ -70,7 +70,7 @@ async def test_get_user_info_me(
     async_client: AsyncClient, user: MockedUser, user_token: str
 ) -> None:
     response = await async_client.get(
-        '/users/me/',
+        '/users/me',
         headers={'Authorization': f'Bearer {user_token}'},
     )
 
@@ -90,7 +90,7 @@ async def test_get_user_info_me(
 async def test_get_user_info_me_not_authenticated(
     async_client: AsyncClient,
 ) -> None:
-    response = await async_client.get('/users/me/')
+    response = await async_client.get('/users/me')
 
     assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {'detail': 'Not authenticated'}
@@ -102,7 +102,7 @@ async def test_update_user_info(
     username_updated = 'update_name'
     email_updated = 'update@email.com'
     response = await async_client.patch(
-        '/users/me/',
+        '/users/me',
         headers={'Authorization': f'Bearer {user_token}'},
         json={
             'username': username_updated,
@@ -152,7 +152,7 @@ async def test_update_user_info_with_credentials_already_in_db(  # noqa: PLR0917
     payload = update_payload(other_user)
 
     response = await async_client.patch(
-        '/users/me/',
+        '/users/me',
         headers={'Authorization': f'Bearer {user_token}'},
         json=payload,
     )
@@ -170,7 +170,7 @@ async def test_update_user_password(
     new_password = 'new_password'
 
     response = await async_client.patch(
-        '/users/me/change-password/',
+        '/users/me/change-password',
         headers={'Authorization': f'Bearer {user_token}'},
         json={
             'password': new_password,
@@ -209,7 +209,7 @@ async def test_update_user_password_mismatch(
 
 async def test_delete_user(async_client: AsyncClient, user_token: str) -> None:
     response = await async_client.delete(
-        '/users/me/',
+        '/users/me',
         headers={'Authorization': f'Bearer {user_token}'},
     )
 

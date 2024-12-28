@@ -79,10 +79,9 @@ async def async_session(
         await conn.run_sync(table_registry.metadata.create_all)
 
     async_session = async_sessionmaker(
-        autoflush=False,
         bind=async_engine,
-        class_=AsyncSession,
         expire_on_commit=False,
+        class_=AsyncSession,
     )
 
     async with async_session() as as_session:
@@ -142,9 +141,8 @@ async def superuser(async_session: AsyncSession) -> MockedUser:
         is_superuser=True,
     )
 
-    async_session.add(superuser)
-    await async_session.commit()
-    await async_session.refresh(superuser)
+    async with async_session.begin():
+        async_session.add(superuser)
 
     superuser_attrs = superuser.__dict__
     superuser_attrs['clean_password'] = settings.FIRST_SUPERUSER_PASSWORD
@@ -160,9 +158,8 @@ async def user(async_session: AsyncSession) -> MockedUser:
 
     user = UserFactory(password_hash=get_password_hash(pwd))
 
-    async_session.add(user)
-    await async_session.commit()
-    await async_session.refresh(user)
+    async with async_session.begin():
+        async_session.add(user)
 
     user_attrs = user.__dict__
     user_attrs['clean_password'] = pwd
@@ -176,9 +173,8 @@ async def user(async_session: AsyncSession) -> MockedUser:
 async def other_user(async_session: AsyncSession) -> User:
     user = UserFactory()
 
-    async_session.add(user)
-    await async_session.commit()
-    await async_session.refresh(user)
+    async with async_session.begin():
+        async_session.add(user)
 
     return user
 
@@ -187,9 +183,8 @@ async def other_user(async_session: AsyncSession) -> User:
 async def author(async_session: AsyncSession) -> Author:
     author = AuthorFactory()
 
-    async_session.add(author)
-    await async_session.commit()
-    await async_session.refresh(author)
+    async with async_session.begin():
+        async_session.add(author)
 
     return author
 
@@ -198,8 +193,7 @@ async def author(async_session: AsyncSession) -> Author:
 async def book(async_session: AsyncSession, author: Author) -> Book:
     book = BookFactory()
 
-    async_session.add(book)
-    await async_session.commit()
-    await async_session.refresh(book)
+    async with async_session.begin():
+        async_session.add(book)
 
     return book
