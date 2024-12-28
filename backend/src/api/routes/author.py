@@ -43,72 +43,6 @@ async def add_author(author_in: AuthorSchema, session: SessionDep) -> Any:
     return new_author
 
 
-@router.delete(
-    '/{author_id}',
-    response_model=Message,
-    dependencies=[Depends(get_current_user)],
-    responses={
-        HTTPStatus.NOT_FOUND: response_model,
-        HTTPStatus.UNAUTHORIZED: response_model,
-    },
-)
-async def delete_author(
-    session: SessionDep,
-    author_id: int,
-) -> Message:
-    """
-    Delete an author.
-    """
-    author_db = await author_service.get_author_by_id(
-        session=session, author_id=author_id
-    )
-
-    if not author_db:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND,
-            detail='Author not found in MADR.',
-        )
-
-    await session.delete(author_db)
-    await session.commit()
-
-    return Message(message='Author deleted from MADR.')
-
-
-@router.patch(
-    '/{author_id}',
-    response_model=AuthorPublic,
-    dependencies=[Depends(get_current_user)],
-    responses={
-        HTTPStatus.NOT_FOUND: response_model,
-        HTTPStatus.UNAUTHORIZED: response_model,
-    },
-)
-async def update_author(
-    author_id: int,
-    author_in: AuthorSchema,
-    session: SessionDep,
-) -> Any:
-    """
-    Update an author's name.
-    """
-    author_db = await author_service.get_author_by_id(
-        session=session, author_id=author_id
-    )
-
-    if not author_db:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND,
-            detail='Author not found in MADR.',
-        )
-
-    author_updated = await author_service.update_author_info(
-        session=session, author_to_update=author_db, author_info=author_in
-    )
-
-    return author_updated
-
-
 @router.get(
     '/{author_id}',
     response_model=AuthorPublic,
@@ -149,3 +83,70 @@ async def get_authors_with_name_like(
     )
 
     return {'authors': authors_list, 'total_results': total_rows_db}
+
+
+@router.patch(
+    '/{author_id}',
+    response_model=AuthorPublic,
+    dependencies=[Depends(get_current_user)],
+    responses={
+        HTTPStatus.NOT_FOUND: response_model,
+        HTTPStatus.UNAUTHORIZED: response_model,
+    },
+)
+async def update_author(
+    author_id: int,
+    author_in: AuthorSchema,
+    session: SessionDep,
+) -> Any:
+    """
+    Update an author's name.
+    """
+    author_db = await author_service.get_author_by_id(
+        session=session, author_id=author_id
+    )
+
+    if not author_db:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='Author not found in MADR.',
+        )
+
+    author_updated = await author_service.update_author_info(
+        session=session, author_to_update=author_db, author_info=author_in
+    )
+
+    return author_updated
+
+
+@router.delete(
+    '/{author_id}',
+    response_model=Message,
+    dependencies=[Depends(get_current_user)],
+    responses={
+        HTTPStatus.NOT_FOUND: response_model,
+        HTTPStatus.UNAUTHORIZED: response_model,
+    },
+)
+async def delete_author(
+    session: SessionDep,
+    author_id: int,
+) -> Message:
+    """
+    Delete an author.
+    """
+    author_db = await author_service.get_author_by_id(
+        session=session, author_id=author_id
+    )
+
+    if not author_db:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='Author not found in MADR.',
+        )
+
+    await author_service.delete_author(
+        session=session, author_to_delete=author_db
+    )
+
+    return Message(message='Author deleted from MADR.')

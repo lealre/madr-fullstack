@@ -53,64 +53,6 @@ async def add_book(session: SessionDep, book_in: BookSchema) -> Any:
     return new_book
 
 
-@router.delete(
-    '/{book_id}',
-    response_model=Message,
-    dependencies=[Depends(get_current_user)],
-    responses={
-        HTTPStatus.NOT_FOUND: response_model,
-        HTTPStatus.UNAUTHORIZED: response_model,
-    },
-)
-async def delete_book(session: SessionDep, book_id: int) -> Message:
-    """
-    Delete a book.
-    """
-    book_db = await book_service.get_book_by_id(
-        session=session, book_id=book_id
-    )
-
-    if not book_db:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='Book not found in MADR.'
-        )
-
-    await session.delete(book_db)
-    await session.commit()
-
-    return Message(message='Book deleted from MADR.')
-
-
-@router.patch(
-    '/{book_id}',
-    response_model=BookPublic,
-    responses={
-        HTTPStatus.NOT_FOUND: response_model,
-        HTTPStatus.UNAUTHORIZED: response_model,
-    },
-)
-async def update_book(
-    book_id: int, book: BookUpdate, session: SessionDep, user: CurrentUser
-) -> Any:
-    """
-    Update the year of a book by its ID.
-    """
-    book_db = await book_service.get_book_by_id(
-        session=session, book_id=book_id
-    )
-
-    if not book_db:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='Book not found in MADR.'
-        )
-
-    db_book = await book_service.update_book_in_db(
-        session=session, book_info=book, book_to_update=book_db
-    )
-
-    return db_book
-
-
 @router.get(
     '/{book_id}',
     response_model=BookPublic,
@@ -155,3 +97,60 @@ async def get_books_like(
     )
 
     return {'books': books, 'total_results': total_results}
+
+
+@router.patch(
+    '/{book_id}',
+    response_model=BookPublic,
+    responses={
+        HTTPStatus.NOT_FOUND: response_model,
+        HTTPStatus.UNAUTHORIZED: response_model,
+    },
+)
+async def update_book(
+    book_id: int, book: BookUpdate, session: SessionDep, user: CurrentUser
+) -> Any:
+    """
+    Update the year of a book by its ID.
+    """
+    book_db = await book_service.get_book_by_id(
+        session=session, book_id=book_id
+    )
+
+    if not book_db:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail='Book not found in MADR.'
+        )
+
+    db_book = await book_service.update_book_in_db(
+        session=session, book_info=book, book_to_update=book_db
+    )
+
+    return db_book
+
+
+@router.delete(
+    '/{book_id}',
+    response_model=Message,
+    dependencies=[Depends(get_current_user)],
+    responses={
+        HTTPStatus.NOT_FOUND: response_model,
+        HTTPStatus.UNAUTHORIZED: response_model,
+    },
+)
+async def delete_book(session: SessionDep, book_id: int) -> Message:
+    """
+    Delete a book.
+    """
+    book_db = await book_service.get_book_by_id(
+        session=session, book_id=book_id
+    )
+
+    if not book_db:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail='Book not found in MADR.'
+        )
+
+    await book_service.delete_book(session=session, book_to_delete=book_db)
+
+    return Message(message='Book deleted from MADR.')

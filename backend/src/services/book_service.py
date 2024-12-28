@@ -57,28 +57,6 @@ async def get_book_by_title(
     return book_db
 
 
-async def update_book_in_db(
-    session: AsyncSession, book_info: BookUpdate, book_to_update: Book
-) -> Book:
-    """
-    Update an existing book record in the database.
-
-    :param session: The asynchronous database session used for the operation.
-    :param book_info: The schema object containing the updated details for the
-        book.
-    :param book_to_update: The existing Book object to be updated.
-    :return: The updated Book object after the changes have been committed and
-        refreshed.
-    """
-    for key, value in book_info.model_dump(exclude_unset=True).items():
-        setattr(book_to_update, key, value)
-
-    async with session.begin():
-        session.add(book_to_update)
-
-    return book_to_update
-
-
 async def get_books_list(
     session: AsyncSession,
     limit: int,
@@ -122,3 +100,39 @@ async def get_books_list(
         authors_list = books_db.all()
 
     return list(authors_list), total_count or 0
+
+
+async def update_book_in_db(
+    session: AsyncSession, book_info: BookUpdate, book_to_update: Book
+) -> Book:
+    """
+    Update an existing book record in the database.
+
+    :param session: The asynchronous database session used for the operation.
+    :param book_info: The schema object containing the updated details for the
+        book.
+    :param book_to_update: The existing Book object to be updated.
+    :return: The updated Book object after the changes have been committed and
+        refreshed.
+    """
+    for key, value in book_info.model_dump(exclude_unset=True).items():
+        setattr(book_to_update, key, value)
+
+    async with session.begin():
+        session.add(book_to_update)
+
+    return book_to_update
+
+
+async def delete_book(session: AsyncSession, book_to_delete: Book) -> bool:
+    """
+    Delete a book from the database and confirm deletion.
+
+    :param session: The asynchronous database session used for the operation.
+    :param book_to_delete: The Book object to be deleted from the database.
+    :return: True if the book was successfully deleted, False otherwise.
+    """
+    async with session.begin():
+        book_deleted = await session.delete(book_to_delete)
+
+    return book_deleted is None

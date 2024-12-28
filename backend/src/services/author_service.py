@@ -113,3 +113,19 @@ async def update_author_info(
         session.add(author_to_update)
 
     return author_to_update
+
+
+async def delete_author(
+    session: AsyncSession, author_to_delete: Author
+) -> bool:
+    """
+    Delete an author from the database and confirm deletion.
+
+    :param session: The asynchronous database session used for the operation.
+    :param author_to_delete: The Author object to be deleted from the database.
+    :return: True if the author was successfully deleted, False otherwise.
+    """
+    async with session.begin():
+        author_deleted = await session.delete(author_to_delete)
+
+    return author_deleted is None

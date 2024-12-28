@@ -117,6 +117,20 @@ async def update_user_info(
     return user_to_update
 
 
+async def delete_user(session: AsyncSession, user_to_delete: User) -> bool:
+    """
+    Delete a user from the database and confirm deletion.
+
+    :param session: The asynchronous database session used for the operation.
+    :param user_to_delete: The User object to be deleted from the database.
+    :return: True if the user was successfully deleted, False otherwise.
+    """
+    async with session.begin():
+        user_deleted = await session.delete(user_to_delete)
+
+    return user_deleted is None
+
+
 async def change_password(
     session: AsyncSession, user_to_update: User, password: str
 ) -> User:

@@ -92,19 +92,6 @@ async def update_user_info_me(
     return user_updated
 
 
-@router.delete('/me', response_model=Message)
-async def delete_user_me(
-    session: SessionDep, current_user: CurrentUser
-) -> Message:
-    """
-    Delete own account.
-    """
-    async with session.begin():
-        await session.delete(current_user)
-
-    return Message(message='User deleted.')
-
-
 @router.patch('/me/change-password', response_model=Message)
 async def update_password_me(
     session: SessionDep,
@@ -127,6 +114,20 @@ async def update_password_me(
     )
 
     return {'message': 'Password has been changed!'}
+
+
+@router.delete('/me', response_model=Message)
+async def delete_user_me(
+    session: SessionDep, current_user: CurrentUser
+) -> Message:
+    """
+    Delete own account.
+    """
+    await user_service.delete_user(
+        session=session, user_to_delete=current_user
+    )
+
+    return Message(message='User deleted.')
 
 
 # -- Email verification routes --

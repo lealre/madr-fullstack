@@ -20,6 +20,34 @@ from src.services import user_service
 router = APIRouter(dependencies=[Depends(get_current_active_superuser)])
 
 
+@router.post('', response_model=UserResponse, status_code=HTTPStatus.CREATED)
+async def create_user(
+    session: SessionDep, user_in: SuperUserRequestCreate
+) -> Any:
+    """
+    Create a user account.
+    """
+    user_db = await user_service.get_user(
+        session=session, user_email=user_in.email, username=user_in.username
+    )
+
+    if user_db:
+        if user_db.username == user_in.username:
+            raise HTTPException(
+                status_code=HTTPStatus.BAD_REQUEST,
+                detail='Username already exists.',
+            )
+        if user_db.email == user_in.email:
+            raise HTTPException(
+                status_code=HTTPStatus.BAD_REQUEST,
+                detail='Email already exists.',
+            )
+
+    new_user = await user_service.add_user(session=session, user=user_in)
+
+    return new_user
+
+
 @router.get('/all', response_model=UserListResponse)
 async def read_users(
     session: SessionDep, limit: int = 100, offset: int = 0
@@ -49,34 +77,6 @@ async def get_user_by_id(session: SessionDep, user_id: int) -> Any:
         )
 
     return user_db
-
-
-@router.post('', response_model=UserResponse, status_code=HTTPStatus.CREATED)
-async def create_user(
-    session: SessionDep, user_in: SuperUserRequestCreate
-) -> Any:
-    """
-    Create a user account.
-    """
-    user_db = await user_service.get_user(
-        session=session, user_email=user_in.email, username=user_in.username
-    )
-
-    if user_db:
-        if user_db.username == user_in.username:
-            raise HTTPException(
-                status_code=HTTPStatus.BAD_REQUEST,
-                detail='Username already exists.',
-            )
-        if user_db.email == user_in.email:
-            raise HTTPException(
-                status_code=HTTPStatus.BAD_REQUEST,
-                detail='Email already exists.',
-            )
-
-    new_user = await user_service.add_user(session=session, user=user_in)
-
-    return new_user
 
 
 @router.patch('/{user_id}', response_model=UserResponse)
