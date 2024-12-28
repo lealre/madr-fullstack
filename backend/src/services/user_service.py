@@ -11,6 +11,30 @@ from src.schemas.users import (
 )
 
 
+async def add_user(
+    session: AsyncSession, user: SuperUserRequestCreate | UserRequestCreate
+) -> User:
+    """
+    Add a new user to the database.
+
+    :param session: The asynchronous database session used for the operation.
+    :param user: A `SuperUserRequestCreate` or `UserRequestCreate` object
+        containing the user data.
+    :return: The created `User` object with the hashed password.
+    """
+    hashed_password = get_password_hash(user.password)
+    del user.password
+
+    user_attrs = user.model_dump()
+    user_attrs['password_hash'] = hashed_password
+    new_user = User(**user_attrs)
+
+    async with session.begin():
+        session.add(new_user)
+
+    return new_user
+
+
 async def get_user(
     session: AsyncSession,
     user_email: str | None = None,
@@ -19,11 +43,11 @@ async def get_user(
     """
     Retrieve a user from the database by username or email.
 
+    :param session: The asynchronous database session used for the query.
+    :param user_email: The email of the user to retrieve.
     :param username: The username of the user to retrieve.
-    :param email: The email of the user to retrieve.
-    :return: The user object if found, otherwise None.
+    :return: The User object if found, otherwise None.
     """
-
     async with session:
         user_db = await session.scalar(
             select(User).where(
@@ -40,7 +64,7 @@ async def get_user_by_id(session: AsyncSession, user_id: int) -> User | None:
 
     :param session: The asynchronous database session used for the query.
     :param user_id: The ID of the user to retrieve.
-    :return: The user object if found, otherwise None.
+    :return: The User object if found, otherwise None.
     """
     async with session:
         user = await session.scalar(select(User).where(User.id == user_id))
@@ -56,11 +80,10 @@ async def get_users_list(
 
     :param session: The asynchronous database session used for the query.
     :param limit: The maximum number of users to retrieve.
-    :param offset: The number of users to skip before starting
-    to retrieve results.
-    :return: A list of user objects.
+    :param offset: The number of users to skip before starting to retrieve
+        results.
+    :return: A list of User objects.
     """
-
     async with session:
         users_db = await session.scalars(
             select(User).offset(offset).limit(limit)
@@ -68,33 +91,6 @@ async def get_users_list(
         all_users = list(users_db.all())
 
     return all_users
-
-
-async def add_user(
-    session: AsyncSession, user: SuperUserRequestCreate | UserRequestCreate
-) -> User:
-    """
-    Add a new user to the database.
-
-    Hashes the user's password, creates a new `User` object, and saves
-    it to the database.
-
-    :param session: The asynchronous database session used for the query.
-    :param user: A `SuperUserRequestCreate` object containing the user data.
-    :return: The created `User` object with the hashed password.
-    """
-
-    hashed_password = get_password_hash(user.password)
-    del user.password
-
-    user_attrs = user.model_dump()
-    user_attrs['password_hash'] = hashed_password
-    new_user = User(**user_attrs)
-
-    async with session.begin():
-        session.add(new_user)
-
-    return new_user
 
 
 async def update_user_info(
@@ -105,18 +101,13 @@ async def update_user_info(
     """
     Update the information of an existing user.
 
-    Updates the fields of the user identified by `user_to_update` with the
-    values provided in `user_info`. Only the fields that are explicitly set
-    in `user_info` will be updated. The changes are committed to the database.
-
-    :param session: The asynchronous database session used for the query.
-    :param user_info: A `SuperUserRequestUpdate` object containing the updated
-    user data.
+    :param session: The asynchronous database session used for the operation.
+    :param user_info: A `SuperUserRequestUpdate` or `UserRequestUpdate` object
+        containing the updated user data.
     :param user_to_update: The `User` object to be updated with the new
-    information.
+        information.
     :return: The updated `User` object after the changes are committed.
     """
-
     for key, value in user_info.model_dump(exclude_unset=True).items():
         setattr(user_to_update, key, value)
 
@@ -141,7 +132,6 @@ async def change_password(
     :param password: The new password to set for the user.
     :return: The updated `User` object with the new password hash.
     """
-
     hashed_password = get_password_hash(password)
     user_to_update.password_hash = hashed_password
 
