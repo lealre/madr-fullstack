@@ -1,19 +1,25 @@
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Box, Card, Flex, Input, Stack } from "@chakra-ui/react";
 import { Field } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { Toaster, toaster } from "@/components/ui/toaster";
 
-import Header from "../components/Header.tsx";
+import Header from "@/components/Header.tsx";
 import useAuthService from "@/api/authApi.ts";
+import {SignInDto} from "@/dto/SingInDto";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<SignInDto>({ mode: "onChange" });
 
   const { signInUser } = useAuthService();
 
@@ -27,14 +33,14 @@ export default function LoginPage() {
     navigate(location.pathname, { replace: true });
   }, [location.state]);
 
-  const handleLogin = async (
-    e: React.FormEvent<HTMLFormElement>
-  ): Promise<void> => {
-    e.preventDefault();
+  const handleLogin = handleSubmit(async (data) => {
     if (isLoading) return;
     setIsLoading(true);
 
-    const response = await signInUser({ email: email, password: password });
+    const response = await signInUser({
+      email: data.email,
+      password: data.password,
+    });
     if (response.data && response.success) {
       localStorage.setItem("token", response.data.access_token);
       navigate("/dashboard");
@@ -46,64 +52,67 @@ export default function LoginPage() {
     }
 
     setIsLoading(false);
-  };
+  });
 
   return (
     <>
-      <Flex direction="column" minHeight="100vh">
+      <Flex direction="column" minHeight="100vh" gap={1} bg="teal.50">
         <Box>
           <Header />
         </Box>
 
-        <Flex
-          direction="column"
-          justify="center"
-          align="center"
-          marginTop={1}
-          flex="1" // Takes up the remaining space after Header
-        >
+        <Flex direction="column" justify="center" align="center" flex="1">
           <form onSubmit={handleLogin}>
             <Card.Root
               w="sm"
+              // bgColor="teal.500"
+              borderWidth={1}
+              shadow="xl"
               colorPalette="teal"
-              layerStyle="fill.subtle"
               variant="elevated"
+              borderColor="gray.300"
             >
               <Card.Header>
-                <Card.Title>Sign In</Card.Title>
-                <Card.Description color="teal.600">
+                <Card.Title>Login</Card.Title>
+                <Card.Description color="black">
                   Fill in the form below to login
                 </Card.Description>
               </Card.Header>
               <Card.Body>
                 <Stack gap="4" w="full">
-                  <Field label="Email">
+                  <Field
+                    label="Email"
+                    invalid={!!errors.email}
+                    errorText={errors.email?.message}
+                  >
                     <Input
-                      borderColor="teal.300"
-                      type="text"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      borderColor="teal.500"
+                      {...register("email", {
+                        required: "Email is required",
+                        maxLength: {
+                          value: 30,
+                          message: "Email cannot exceed 30 characters",
+                        },
+                      })}
                     />
                   </Field>
-                  <Field label="Password">
+                  <Field
+                    label="Password"
+                    invalid={!!errors.password}
+                    errorText={errors.password?.message}
+                  >
                     <Input
-                      borderColor="teal.300"
-                      required
+                      borderColor="teal.500"
                       type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      {...register("password", {
+                        required: "Password is required",
+                      })}
                     />
                   </Field>
                 </Stack>
               </Card.Body>
               <Card.Footer justifyContent="flex-end">
-                <Button
-                  onClick={() => {
-                    setEmail("");
-                    setPassword("");
-                  }}
-                >
+                <Button loading={isLoading} onClick={() => reset()}>
                   Cancel
                 </Button>
                 <Button type="submit" loading={isLoading}>

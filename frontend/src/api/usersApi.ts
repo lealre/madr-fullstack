@@ -11,7 +11,7 @@ const useUsersService = () => {
     const response = await PostWithoutRefreshToken<
       SingUpResponseDto,
       SingUpRequestDto
-    >("/users/", SingUpRequestDto);
+    >("/users/singup", SingUpRequestDto);
 
     return response;
   };

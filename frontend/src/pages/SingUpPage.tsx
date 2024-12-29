@@ -21,7 +21,7 @@ const singUpPage = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const navigate = useNavigate();
 
-  const handleAddAuthor = handleSubmit(async (data) => {
+  const handleAddAuthor = handleSubmit(async (data: SingUpRequestDto) => {
     if (isLoading) return;
     setIsLoading(true);
 
@@ -57,7 +57,7 @@ const singUpPage = () => {
 
   return (
     <>
-      <Flex direction="column" minHeight="100vh">
+      <Flex direction="column" minHeight="100vh" bg="teal.50">
         <Box>
           <Header />
         </Box>
@@ -71,14 +71,17 @@ const singUpPage = () => {
         >
           <form onSubmit={handleAddAuthor}>
             <Card.Root
-              w="md"
+              w="sm"
+              // bgColor="teal.500"
+              borderWidth={1}
+              shadow="xl"
               colorPalette="teal"
-              layerStyle="fill.subtle"
               variant="elevated"
+              borderColor="gray.300"
             >
               <Card.Header>
                 <Card.Title>Sign up</Card.Title>
-                <Card.Description color="teal.600">
+                <Card.Description>
                   Fill in the form below to create an account
                 </Card.Description>
               </Card.Header>
@@ -90,6 +93,7 @@ const singUpPage = () => {
                     errorText={errors.username?.message}
                   >
                     <Input
+                      borderColor="teal.500"
                       {...register("username", {
                         required: "Username is required",
                         maxLength: {
@@ -105,6 +109,7 @@ const singUpPage = () => {
                     errorText={errors.email?.message}
                   >
                     <Input
+                      borderColor="teal.500"
                       {...register("email", {
                         required: "Email is required",
                         maxLength: {
@@ -120,6 +125,7 @@ const singUpPage = () => {
                     errorText={errors.password?.message}
                   >
                     <Input
+                      borderColor="teal.500"
                       type="password"
                       {...register("password", {
                         required: "Password is required",
@@ -129,7 +135,9 @@ const singUpPage = () => {
                 </Stack>
               </Card.Body>
               <Card.Footer justifyContent="flex-end">
-                <Button onClick={() => reset()}>Cancel</Button>
+                <Button loading={isLoading} onClick={() => reset()}>
+                  Cancel
+                </Button>
                 <Button type="submit" loading={isLoading}>
                   Sign in
                 </Button>
