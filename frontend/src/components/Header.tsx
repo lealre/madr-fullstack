@@ -37,21 +37,21 @@ const Header: React.FC = () => {
         px={4}
       >
         <Heading size="3xl" color="white" margin={0}>
-          <Link
-            href="/"
-            style={{ textDecoration: "none" }}
+          <Button
+            asChild
             variant="plain"
             color="white"
-            fontSize="xll"
-            _hover={{ color: "gray.200" }}
+            fontSize="3xl"
+            _hover={{ color: "gray.200", textDecoration: "none" }}
+            focusRing="none"
           >
-            MADR
-          </Link>
+            <Link href="/">MADR</Link>
+          </Button>
         </Heading>
 
         <DrawerRoot size="xs" initialFocusEl={() => null}>
           <DrawerBackdrop />
-          <DrawerTrigger asChild>
+          <DrawerTrigger asChild color="white">
             <Button
               variant="outline"
               size="sm"

@@ -31,6 +31,8 @@ const HomePage: React.FC = () => {
           textAlign="center"
         >
           <Text textStyle="5xl">Welcome to MADR App!</Text>
+          <Text textStyle="xl">Add links here to login or logout</Text>
+          <Text textStyle="xl">Add here Sectiojn about the project</Text>
         </Flex>
       </Container>
       <Toaster />
