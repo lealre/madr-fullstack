@@ -8,7 +8,7 @@ const useBooksService = () => {
   const getBooks = async (
     params?: getBooksParams
   ): Promise<ApiResponseDto<GetBooksResponseDto>> => {
-    const response = await Get<GetBooksResponseDto>("/book/", params);
+    const response = await Get<GetBooksResponseDto>("/book", params);
 
     return response;
   };

@@ -21,7 +21,7 @@ import {
   ActionBarSelectionTrigger,
   ActionBarSeparator,
 } from "@/components/ui/action-bar";
-import { Toaster, toaster } from "@/components/ui/toaster";
+import { toaster } from "@/components/ui/toaster";
 import { Checkbox } from "@/components/ui/checkbox";
 
 import useRootApiService from "@/api/authorsApi";
@@ -37,9 +37,9 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({ authors }) => {
     formState: { errors },
   } = useForm<PostBodyCreateAuthorDto>({ mode: "onChange" });
 
-  const [selection, setSelection] = useState<number[]>([]);
-  const hasSelection = selection.length > 0;
-  const indeterminate = hasSelection && selection.length < authors.length;
+  const [authorsIDs, setAuthorsIDs] = useState<number[]>([]);
+  const hasSelection = authorsIDs.length > 0;
+  const indeterminate = hasSelection && authorsIDs.length < authors.length;
 
   const handleAddAuthor = handleSubmit(async (data) => {
     const response = await createAuthor(data);
@@ -65,6 +65,11 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({ authors }) => {
       }
     }
   });
+
+
+  const deleteAuthors = async () => {
+    console.log('Atuhors to delete', authorsIDs)
+  }
 
   return (
     <>
@@ -124,29 +129,28 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({ authors }) => {
         </DialogRoot>
       </Flex>
 
-      <Table.Root
-        key="outline"
-        // size="md"
-        variant="outline"
-        borderRadius="8px"
-      >
+      <Table.Root key="outline" variant="line" borderRadius="8px">
         <Table.Header bg="teal.500">
           <Table.Row>
-            <Table.ColumnHeader>
+            <Table.ColumnHeader width="10%">
               <Checkbox
                 top="1"
                 _hover={{ cursor: "pointer" }}
                 aria-label="Select all rows"
-                checked={indeterminate ? "indeterminate" : selection.length > 0}
+                checked={
+                  indeterminate ? "indeterminate" : authorsIDs.length > 0
+                }
                 onCheckedChange={(changes) => {
-                  setSelection(
+                  setAuthorsIDs(
                     changes.checked ? authors.map((item) => item.id) : []
                   );
                 }}
               />
             </Table.ColumnHeader>
-            <Table.ColumnHeader>ID</Table.ColumnHeader>
-            <Table.ColumnHeader textAlign="end">Author</Table.ColumnHeader>
+            <Table.ColumnHeader width="40%" textAlign="start">
+              Author
+            </Table.ColumnHeader>
+            <Table.ColumnHeader width="40%">ID</Table.ColumnHeader>
           </Table.Row>
         </Table.Header>
         <Table.Body>
@@ -154,8 +158,8 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({ authors }) => {
             authors.map((item) => (
               <Table.Row
                 key={item.id}
-                data-selected={selection.includes(item.id) ? "" : undefined}
-                bg={selection.includes(item.id) ? "teal.100" : "white"}
+                data-selected={authorsIDs.includes(item.id) ? "" : undefined}
+                bg={authorsIDs.includes(item.id) ? "teal.100" : "white"}
               >
                 <Table.Cell>
                   <Checkbox
@@ -164,18 +168,20 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({ authors }) => {
                     top="1"
                     _hover={{ cursor: "pointer" }}
                     aria-label="Select row"
-                    checked={selection.includes(item.id)}
+                    checked={authorsIDs.includes(item.id)}
                     onCheckedChange={(changes) => {
-                      setSelection((prev) =>
+                      setAuthorsIDs((prev) =>
                         changes.checked
                           ? [...prev, item.id]
-                          : selection.filter((id) => id !== item.id)
+                          : authorsIDs.filter((id) => id !== item.id)
                       );
                     }}
                   />
                 </Table.Cell>
-                <Table.Cell>{item.id}</Table.Cell>
-                <Table.Cell textAlign="end">{item.name}</Table.Cell>
+                <Table.Cell textStyle="sm" textAlign="start">
+                  {item.name}
+                </Table.Cell>
+                <Table.Cell textStyle="md">{item.id}</Table.Cell>
               </Table.Row>
             ))
           ) : (
@@ -187,22 +193,31 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({ authors }) => {
           )}
         </Table.Body>
       </Table.Root>
+
       <ActionBarRoot open={hasSelection}>
         <ActionBarContent bg="teal.50" borderWidth="1px">
           <ActionBarSelectionTrigger>
-            {selection.length} selected
+            {authorsIDs.length} selected
           </ActionBarSelectionTrigger>
           <ActionBarSeparator />
           <Button
             size="sm"
             colorPalette="red"
             _hover={{ background: "red.400" }}
+            onClick={() => deleteAuthors()}
           >
             Delete
           </Button>
+          <Button
+            size="sm"
+            colorPalette="blue"
+            _hover={{ background: "blue.400" }}
+            onClick={() => setAuthorsIDs([])}
+          >
+            Clear Selection
+          </Button>
         </ActionBarContent>
       </ActionBarRoot>
-      <Toaster />
     </>
   );
 };

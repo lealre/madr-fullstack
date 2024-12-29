@@ -15,10 +15,14 @@ import BooksTable from "@/pages/dashboard/components/BooksTable";
 import { PageProps, TabProps } from "@/pages/dashboard/Types";
 import useBooksService from "@/api/booksApi";
 import useAuthorsService from "@/api/authorsApi";
+import useUsersService from "@/api/usersApi";
+import { GetCurrentUserDto } from "@/dto/UsersDto";
 
 const Dashboard: React.FC = () => {
   const { getAuthors } = useAuthorsService();
   const { getBooks } = useBooksService();
+  const { getCurrentUser } = useUsersService();
+  const [currentUser, setCurrentUser] = useState<GetCurrentUserDto | null>();
   const [authors, setAuthors] = useState<AuthorResponseDto[]>([]);
   const [books, setBooks] = useState<BookResponseDto[]>([]);
   const [tab, setTab] = useState<TabProps>({ value: "authors" });
@@ -38,7 +42,21 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     fetchAuthors(currentPage);
+    getCurrentUserInfo();
   }, [currentPage]);
+
+  const getCurrentUserInfo = async () => {
+    const response = await getCurrentUser();
+    if (response.data && response.success) {
+      console.log(response.data);
+      setCurrentUser(response.data);
+    } else {
+      toaster.create({
+        title: response.error.detail,
+        type: "error",
+      });
+    }
+  };
 
   const fetchAuthors = async (page: number): Promise<void> => {
     if (isLoading) return;
@@ -87,9 +105,15 @@ const Dashboard: React.FC = () => {
       <Container maxW="1000px" mx="auto">
         <Flex mt={1} align="center">
           <FaUserAlt size={20} style={{ marginRight: "8px" }} />
-          <Text fontSize="lg" alignItems="center">
-            test
-          </Text>
+          {currentUser ? (
+            <>
+              <Text fontSize="lg" alignItems="center">
+                {currentUser.username} ({currentUser.email})
+              </Text>
+            </>
+          ) : (
+            <Text></Text>
+          )}
         </Flex>
         <Box mt={8}>
           <Flex borderBottom="1px solid black" mb={3} justify="space-between">
