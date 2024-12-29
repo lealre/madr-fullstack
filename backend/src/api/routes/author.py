@@ -4,7 +4,12 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 
 from src.api.dependencies import SessionDep, get_current_user
-from src.schemas.authors import AuthorList, AuthorPublic, AuthorSchema
+from src.schemas.authors import (
+    AuthorList,
+    AuthorPublic,
+    AuthorSchema,
+    DeteleAuthosBulk,
+)
 from src.schemas.base import Message
 from src.schemas.responses import response_model
 from src.services import author_service
@@ -78,7 +83,10 @@ async def get_authors_with_name_like(
     """
     Get authors by filtering by name (like search).
     """
-    authors_list, total_rows_db = await author_service.get_authors_list(
+    (
+        authors_list,
+        total_rows_db,
+    ) = await author_service.get_filtered_authors_list(
         session=session, offset=offset, limit=limit, author_name=name
     )
 
@@ -150,3 +158,37 @@ async def delete_author(
     )
 
     return Message(message='Author deleted from MADR.')
+
+
+@router.delete(
+    '',
+    response_model=Message,
+    dependencies=[Depends(get_current_user)],
+    responses={
+        HTTPStatus.NOT_FOUND: response_model,
+        HTTPStatus.UNAUTHORIZED: response_model,
+    },
+)
+async def delete_author_batch(
+    session: SessionDep,
+    authors_ids: DeteleAuthosBulk,
+) -> Message:
+    """
+    Delete authors in batch by their list of ids.
+    """
+    auhtor_ids_db = await author_service.get_authors_ids_list(
+        session=session, author_ids=authors_ids.ids
+    )
+
+    authors_ids_in = list(set(authors_ids.ids))
+    if not all(id in auhtor_ids_db for id in authors_ids_in):
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='There are ids not found in database',
+        )
+
+    await author_service.delete_authors_batch(
+        session=session, author_ids=authors_ids_in
+    )
+
+    return Message(message='Authors deleted from MADR.')

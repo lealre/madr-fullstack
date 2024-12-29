@@ -19,3 +19,7 @@ class AuthorPublic(AuthorSchema):
 class AuthorList(BaseModel):
     authors: list[AuthorPublic]
     total_results: int
+
+
+class DeteleAuthosBulk(BaseModel):
+    ids: list[int]

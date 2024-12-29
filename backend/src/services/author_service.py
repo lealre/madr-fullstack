@@ -1,4 +1,4 @@
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models import Author
@@ -58,7 +58,7 @@ async def get_author_by_name(
     return author_db
 
 
-async def get_authors_list(
+async def get_filtered_authors_list(
     session: AsyncSession,
     author_name: str | None = None,
     limit: int = 20,
@@ -94,6 +94,24 @@ async def get_authors_list(
     return list(authors_list), total_count or 0
 
 
+async def get_authors_ids_list(
+    session: AsyncSession, author_ids: list[int]
+) -> list[int]:
+    """
+    Retrieve a list of author IDs that match the given list of IDs.
+
+    :param session: The asynchronous database session used for the query.
+    :param author_ids: A list of author IDs to search for in the database.
+    :return: A list of author IDs that exist in the database.
+    """
+    async with session:
+        authors_list = await session.scalars(
+            select(Author.id).filter(Author.id.in_(author_ids))
+        )
+
+    return list(authors_list.all())
+
+
 async def update_author_info(
     session: AsyncSession, author_to_update: Author, author_info: AuthorSchema
 ) -> Author:
@@ -117,7 +135,7 @@ async def update_author_info(
 
 async def delete_author(
     session: AsyncSession, author_to_delete: Author
-) -> bool:
+) -> None:
     """
     Delete an author from the database and confirm deletion.
 
@@ -126,6 +144,21 @@ async def delete_author(
     :return: True if the author was successfully deleted, False otherwise.
     """
     async with session.begin():
-        author_deleted = await session.delete(author_to_delete)
+        await session.delete(author_to_delete)
 
-    return author_deleted is None
+
+async def delete_authors_batch(
+    session: AsyncSession, author_ids: list[int]
+) -> None:
+    """
+    Delete authors in bulk based on a list of their IDs.
+
+    This function removes all authors whose IDs match the provided list from
+    the database.
+
+    :param session: The asynchronous database session used for the operation.
+    :param author_ids: A list of author IDs to delete from the database.
+    :return: None
+    """
+    async with session.begin():
+        await session.execute(delete(Author).where(Author.id.in_(author_ids)))

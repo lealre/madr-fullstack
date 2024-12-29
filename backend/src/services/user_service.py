@@ -117,7 +117,7 @@ async def update_user_info(
     return user_to_update
 
 
-async def delete_user(session: AsyncSession, user_to_delete: User) -> bool:
+async def delete_user(session: AsyncSession, user_to_delete: User) -> None:
     """
     Delete a user from the database and confirm deletion.
 
@@ -126,9 +126,7 @@ async def delete_user(session: AsyncSession, user_to_delete: User) -> bool:
     :return: True if the user was successfully deleted, False otherwise.
     """
     async with session.begin():
-        user_deleted = await session.delete(user_to_delete)
-
-    return user_deleted is None
+        await session.delete(user_to_delete)
 
 
 async def change_password(

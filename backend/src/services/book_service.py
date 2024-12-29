@@ -124,7 +124,7 @@ async def update_book_in_db(
     return book_to_update
 
 
-async def delete_book(session: AsyncSession, book_to_delete: Book) -> bool:
+async def delete_book(session: AsyncSession, book_to_delete: Book) -> None:
     """
     Delete a book from the database and confirm deletion.
 
@@ -133,6 +133,4 @@ async def delete_book(session: AsyncSession, book_to_delete: Book) -> bool:
     :return: True if the book was successfully deleted, False otherwise.
     """
     async with session.begin():
-        book_deleted = await session.delete(book_to_delete)
-
-    return book_deleted is None
+        await session.delete(book_to_delete)
