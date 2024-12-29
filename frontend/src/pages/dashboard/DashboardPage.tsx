@@ -159,7 +159,11 @@ const Dashboard: React.FC = () => {
 
           {tab.value === "authors" ? (
             <Flex direction="column" gap={3}>
-              <AuthorsTable authors={authors} />
+              <AuthorsTable
+                authors={authors}
+                fetchAuthors={fetchAuthors}
+                page={pageProps.currentPage}
+              />
               <Center>
                 <Pagination {...pageProps}></Pagination>
               </Center>

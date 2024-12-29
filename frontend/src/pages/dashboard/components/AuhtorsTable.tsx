@@ -24,20 +24,24 @@ import {
 import { toaster } from "@/components/ui/toaster";
 import { Checkbox } from "@/components/ui/checkbox";
 
-import useRootApiService from "@/api/authorsApi";
+import useAuthorsService from "@/api/authorsApi";
 import { PostBodyCreateAuthorDto } from "@/dto/AuthorsDto";
 import { AuthorsTableProps } from "@/pages/dashboard/Types";
 
-const AuthorsTable: React.FC<AuthorsTableProps> = ({ authors }) => {
-  const { createAuthor } = useRootApiService();
+const AuthorsTable: React.FC<AuthorsTableProps> = ({
+  authors,
+  fetchAuthors,
+  page,
+}) => {
+  const { createAuthor, deleteAuthorsBatch } = useAuthorsService();
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
   } = useForm<PostBodyCreateAuthorDto>({ mode: "onChange" });
-
   const [authorsIDs, setAuthorsIDs] = useState<number[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const hasSelection = authorsIDs.length > 0;
   const indeterminate = hasSelection && authorsIDs.length < authors.length;
 
@@ -66,16 +70,45 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({ authors }) => {
     }
   });
 
-
   const deleteAuthors = async () => {
-    console.log('Atuhors to delete', authorsIDs)
-  }
+    console.log("Atuhors to delete", authorsIDs);
+    const response = await deleteAuthorsBatch({ ids: authorsIDs });
+    if (response.data && response.success) {
+      toaster.create({
+        title: response.data.message,
+        type: "success",
+      });
+      fetchAuthors(page);
+      setAuthorsIDs([]);
+    } else {
+      toaster.create({
+        title: response.error?.detail ?? "An error occurred",
+        type: "error",
+      });
+    }
+  };
+
+  const handleSearch = () => {
+    console.log("Searching for authors:", searchQuery);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
 
   return (
     <>
       <Flex gap="4" justify="space-between" mb={2}>
         <InputGroup flex="1" startElement={<LuSearch />}>
-          <Input maxW="400px" placeholder="Search authors" />
+          <Input
+            maxW="400px"
+            placeholder="Search authors"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
+          />
         </InputGroup>
 
         <DialogRoot

@@ -1,14 +1,15 @@
 import useRootApiService from "@/api/rootApi";
-import ApiResponseDto from "@/dto/ApiResponseDto";
+import { ApiResponseDto, MessageDto } from "@/dto/ApiResponseDto";
 import {
   GetAuthorsResponseDto,
   GetAuthorsParams,
   AuthorResponseDto,
   PostBodyCreateAuthorDto,
+  DeleteAuthorsBatchDto,
 } from "@/dto/AuthorsDto";
 
 const useAuthorsService = () => {
-  const { Get, Post } = useRootApiService();
+  const { Get, Post, Delete } = useRootApiService();
 
   const getAuthors = async (
     params?: GetAuthorsParams
@@ -29,7 +30,18 @@ const useAuthorsService = () => {
     return response;
   };
 
-  return { getAuthors, createAuthor };
+  const deleteAuthorsBatch = async (
+    data: DeleteAuthorsBatchDto
+  ): Promise<ApiResponseDto<MessageDto>> => {
+    const response = await Delete<MessageDto, DeleteAuthorsBatchDto>(
+      "/author",
+      data
+    );
+
+    return response;
+  };
+
+  return { getAuthors, createAuthor, deleteAuthorsBatch };
 };
 
 export default useAuthorsService;

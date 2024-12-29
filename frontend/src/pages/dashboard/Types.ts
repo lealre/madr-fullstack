@@ -14,6 +14,8 @@ export interface TabProps {
 
 export interface AuthorsTableProps {
   authors: AuthorResponseDto[];
+  page: number;
+  fetchAuthors: (page: number) => void;
 }
 
 export interface BooksTableProps {

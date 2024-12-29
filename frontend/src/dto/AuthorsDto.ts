@@ -17,3 +17,7 @@ export interface GetAuthorsResponseDto {
 export interface PostBodyCreateAuthorDto {
   name: string;
 }
+
+export interface DeleteAuthorsBatchDto {
+  ids: number[]
+}

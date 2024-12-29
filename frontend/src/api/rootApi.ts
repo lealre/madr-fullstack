@@ -1,4 +1,4 @@
-import ApiResponseDto from "@/dto/ApiResponseDto";
+import { ApiResponseDto } from "@/dto/ApiResponseDto";
 import axios, {
   AxiosInstance,
   AxiosResponse,
