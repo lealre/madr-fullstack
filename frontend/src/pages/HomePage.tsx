@@ -1,8 +1,9 @@
-import { useLocation, useNavigate } from "react-router-dom";
-import Header from "../components/Header";
 import { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Container, Flex, Text } from "@chakra-ui/react";
 import { Toaster, toaster } from "@/components/ui/toaster";
+
+import Header from "../components/Header";
 
 const HomePage: React.FC = () => {
   const location = useLocation();

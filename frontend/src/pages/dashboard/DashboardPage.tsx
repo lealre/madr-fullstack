@@ -4,19 +4,17 @@ import { Tabs } from "@chakra-ui/react";
 import { LuUser } from "react-icons/lu";
 import { IoBookSharp } from "react-icons/io5";
 import { FaUserAlt } from "react-icons/fa";
-import useAuthorsService from "@/api/authorsApi";
-import Header from "../components/Header";
-import AuthorsTable from "../components/AuhtorsTable";
-import {AuthorResponseDto} from "@/dto/AuthorsDto"
-import { BookResponseDto } from "@/dto/BooksDto";
-import Pagination, { PageProps } from "../components/Pagination";
-import BooksTable from "../components/BooksTable";
 import { Toaster, toaster } from "@/components/ui/toaster";
-import useBooksService from "@/api/booksApi";
 
-interface TabProps {
-  value: string;
-}
+import Header from "@/components/Header";
+import AuthorsTable from "@/pages/dashboard/components/AuhtorsTable";
+import { AuthorResponseDto } from "@/dto/AuthorsDto";
+import { BookResponseDto } from "@/dto/BooksDto";
+import Pagination from "@/pages/dashboard/components/Pagination";
+import BooksTable from "@/pages/dashboard/components/BooksTable";
+import { PageProps, TabProps } from "@/pages/dashboard/Types";
+import useBooksService from "@/api/booksApi";
+import useAuthorsService from "@/api/authorsApi";
 
 const Dashboard: React.FC = () => {
   const { getAuthors } = useAuthorsService();
@@ -49,9 +47,10 @@ const Dashboard: React.FC = () => {
 
     const response = await getAuthors({ limit: pageSize, offset: offset });
     if (response.data && response.success) {
+      console.log(response.data);
       setAuthors(response.data.authors);
-      const totalResults = response.data.total_results;
-      setTotalResults(totalResults);
+      const responsetTotalResults = response.data.total_results;
+      setTotalResults(responsetTotalResults);
     } else {
       toaster.create({
         title: response.error.detail,

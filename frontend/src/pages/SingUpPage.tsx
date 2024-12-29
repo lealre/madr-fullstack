@@ -1,4 +1,5 @@
-import { Box, Button, Card, Flex, Input, Stack } from "@chakra-ui/react";
+import { Box, Card, Flex, Input, Stack } from "@chakra-ui/react";
+import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { useForm } from "react-hook-form";
 import Header from "../components/Header";
@@ -7,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import useUsersService from "@/api/usersApi";
 import { Toaster, toaster } from "@/components/ui/toaster";
 import { SingUpRequestDto } from "@/dto/UsersDto";
+import { useState } from "react";
 
 const singUpPage = () => {
   const { createUser } = useUsersService();
@@ -16,9 +18,13 @@ const singUpPage = () => {
     reset,
     formState: { errors },
   } = useForm<SingUpRequestDto>({ mode: "onChange" });
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const navigate = useNavigate();
 
   const handleAddAuthor = handleSubmit(async (data) => {
+    if (isLoading) return;
+    setIsLoading(true);
+
     const response = await createUser(data);
     if (response.data && response.success) {
       navigate("/login", {
@@ -45,6 +51,8 @@ const singUpPage = () => {
         });
       }
     }
+
+    setIsLoading(false);
   });
 
   return (
@@ -122,7 +130,9 @@ const singUpPage = () => {
               </Card.Body>
               <Card.Footer justifyContent="flex-end">
                 <Button onClick={() => reset()}>Cancel</Button>
-                <Button type="submit">Sign in</Button>
+                <Button type="submit" loading={isLoading}>
+                  Sign in
+                </Button>
               </Card.Footer>
             </Card.Root>
           </form>

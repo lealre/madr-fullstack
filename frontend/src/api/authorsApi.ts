@@ -13,7 +13,7 @@ const useAuthorsService = () => {
   const getAuthors = async (
     params?: GetAuthorsParams
   ): Promise<ApiResponseDto<GetAuthorsResponseDto>> => {
-    const response = await Get<GetAuthorsResponseDto>("/author/", params);
+    const response = await Get<GetAuthorsResponseDto>("/author", params);
 
     return response;
   };
@@ -22,7 +22,7 @@ const useAuthorsService = () => {
     data: PostBodyCreateAuthorDto
   ): Promise<ApiResponseDto<AuthorResponseDto>> => {
     const response = await Post<AuthorResponseDto, PostBodyCreateAuthorDto>(
-      "/author/",
+      "/author",
       data
     );
 

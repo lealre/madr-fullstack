@@ -1,8 +1,9 @@
-import { Button, Flex, Input, Stack, Table } from "@chakra-ui/react";
-import { InputGroup } from "./ui/input-group";
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
 import { LuSearch } from "react-icons/lu";
 import { GrAdd } from "react-icons/gr";
-import React, { useState } from "react";
+import { Button, Flex, Input, Stack, Table } from "@chakra-ui/react";
+import { InputGroup } from "@/components/ui/input-group";
 import { Field } from "@/components/ui/field";
 import {
   DialogBody,
@@ -22,14 +23,10 @@ import {
 } from "@/components/ui/action-bar";
 import { Toaster, toaster } from "@/components/ui/toaster";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useForm } from "react-hook-form";
+
 import useRootApiService from "@/api/authorsApi";
-import { AuthorResponseDto, PostBodyCreateAuthorDto } from "@/dto/AuthorsDto";
-
-
-interface AuthorsTableProps {
-  authors: AuthorResponseDto[];
-}
+import { PostBodyCreateAuthorDto } from "@/dto/AuthorsDto";
+import { AuthorsTableProps } from "@/pages/dashboard/Types";
 
 const AuthorsTable: React.FC<AuthorsTableProps> = ({ authors }) => {
   const { createAuthor } = useRootApiService();

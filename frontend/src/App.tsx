@@ -1,4 +1,5 @@
 import { Provider } from "./components/ui/provider";
+
 import AppRouter from "./routes/AppRouter";
 
 

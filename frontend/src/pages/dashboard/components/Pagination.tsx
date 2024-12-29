@@ -6,12 +6,7 @@ import {
 } from "@/components/ui/pagination";
 import { HStack } from "@chakra-ui/react";
 
-export interface PageProps {
-  totalResults: number;
-  pageSize: number;
-  currentPage: number;
-  setCurrentPage: (newPage: number) => void;
-}
+import { PageProps } from "@/pages/dashboard/Types";
 
 const Pagination: React.FC<PageProps> = (pageProps) => {
   const { totalResults, pageSize, currentPage, setCurrentPage } = pageProps;

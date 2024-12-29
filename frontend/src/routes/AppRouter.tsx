@@ -4,11 +4,12 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import LoginPage from "../pages/LoginPage";
-import Dashboard from "../pages/DashboardPage";
-import HomePage from "../pages/HomePage";
-import SingUpPage from "../pages/SingUpPage";
-import PrivateRoute from "../routes/PrivateRoute";
+
+import LoginPage from "@/pages/LoginPage";
+import Dashboard from "@/pages/dashboard/DashboardPage";
+import HomePage from "@/pages/HomePage";
+import SingUpPage from "@/pages/SingUpPage";
+import PrivateRoute from "@/routes/PrivateRoute";
 
 export default function AppRouter() {
   return (

@@ -1,13 +1,10 @@
-import { Button, Flex, Input, Table } from "@chakra-ui/react";
 import React from "react";
-import { InputGroup } from "./ui/input-group";
-import { LuSearch } from "react-icons/lu";
 import { GrAdd } from "react-icons/gr";
-import { BookResponseDto } from "@/dto/BooksDto";
+import { LuSearch } from "react-icons/lu";
+import { Button, Flex, Input, Table } from "@chakra-ui/react";
+import { InputGroup } from "@/components/ui/input-group";
 
-export interface BooksTableProps {
-  books: BookResponseDto[];
-}
+import { BooksTableProps } from "@/pages/dashboard/Types";
 
 const BooksTable: React.FC<BooksTableProps> = ({ books }) => {
   return (
