@@ -9,3 +9,8 @@ export interface SingUpResponseDto {
   username: string;
   email: string;
 }
+
+export interface SignInDto {
+  email: string;
+  password: string;
+}

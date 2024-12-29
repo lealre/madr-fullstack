@@ -8,7 +8,7 @@ import { Toaster, toaster } from "@/components/ui/toaster";
 
 import Header from "@/components/Header.tsx";
 import useAuthService from "@/api/authApi.ts";
-import {SignInDto} from "@/dto/SingInDto";
+import { SignInDto } from "@/dto/UsersDto";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState<boolean>(false);

@@ -89,20 +89,25 @@ const useRootApiService = () => {
 
   async function Get<T>(path: string, params?: any) {
     try {
-      const response: AxiosResponse<T> = await axiosInstance.get(path, {
-        params,
-        paramsSerializer: (params) => {
-          return qs.stringify(params, { arrayFormat: "repeat" });
-        },
-      });
-      return {
-        data: response.data,
-        success: true,
-        code: response.status,
-        error: undefined,
-      };
+      const response: AxiosResponse<T> | ApiResponseDto<T> =
+        await axiosInstance.get(path, {
+          params,
+          paramsSerializer: (params) => {
+            return qs.stringify(params, { arrayFormat: "repeat" });
+          },
+        });
+
+      if ("status" in response && [200, 201].includes(response.status)) {
+        return {
+          data: response.data,
+          success: true,
+          code: response.status,
+          error: undefined,
+        };
+      }
+
+      return response as ApiResponseDto<T>;
     } catch (error: any) {
-      console.log(error);
       return {
         data: undefined,
         success: false,
@@ -118,15 +123,20 @@ const useRootApiService = () => {
     authorization?: string | undefined
   ): Promise<ApiResponseDto<T>> {
     try {
-      const response: AxiosResponse<T> = await axiosInstance.post(path, body, {
-        headers: { Authorization: authorization },
-      });
-      return {
-        data: response.data,
-        success: true,
-        code: response.status,
-        error: undefined,
-      };
+      const response: AxiosResponse<T> | ApiResponseDto<T> =
+        await axiosInstance.post(path, body, {
+          headers: { Authorization: authorization },
+        });
+      if ("status" in response && [200, 201].includes(response.status)) {
+        return {
+          data: response.data,
+          success: true,
+          code: response.status,
+          error: undefined,
+        };
+      }
+
+      return response as ApiResponseDto<T>;
     } catch (error: any) {
       return {
         data: undefined,
@@ -211,13 +221,18 @@ const useRootApiService = () => {
     body: TBody
   ): Promise<ApiResponseDto<T>> {
     try {
-      const response: AxiosResponse<T> = await axiosInstance.put(path, body);
-      return {
-        data: response.data,
-        success: true,
-        code: response.status,
-        error: undefined,
-      };
+      const response: AxiosResponse<T> | ApiResponseDto<T> =
+        await axiosInstance.put(path, body);
+      if ("status" in response && [200, 201].includes(response.status)) {
+        return {
+          data: response.data,
+          success: true,
+          code: response.status,
+          error: undefined,
+        };
+      }
+
+      return response as ApiResponseDto<T>;
     } catch (error: any) {
       return {
         data: undefined,
@@ -233,13 +248,18 @@ const useRootApiService = () => {
     body: TBody
   ): Promise<ApiResponseDto<T>> {
     try {
-      const response: AxiosResponse<T> = await axiosInstance.patch(path, body);
-      return {
-        data: response.data,
-        success: true,
-        code: response.status,
-        error: undefined,
-      };
+      const response: AxiosResponse<T> | ApiResponseDto<T> =
+        await axiosInstance.patch(path, body);
+      if ("status" in response && [200, 201].includes(response.status)) {
+        return {
+          data: response.data,
+          success: true,
+          code: response.status,
+          error: undefined,
+        };
+      }
+
+      return response as ApiResponseDto<T>;
     } catch (error: any) {
       return {
         data: undefined,
@@ -255,15 +275,20 @@ const useRootApiService = () => {
     body?: TBody
   ): Promise<ApiResponseDto<T>> {
     try {
-      const response: AxiosResponse<T> = await axiosInstance.delete(path, {
-        data: body,
-      });
-      return {
-        data: response.data,
-        success: true,
-        code: response.status,
-        error: undefined,
-      };
+      const response: AxiosResponse<T> | ApiResponseDto<T> =
+        await axiosInstance.delete(path, {
+          data: body,
+        });
+      if ("status" in response && [200, 201].includes(response.status)) {
+        return {
+          data: response.data,
+          success: true,
+          code: response.status,
+          error: undefined,
+        };
+      }
+
+      return response as ApiResponseDto<T>;
     } catch (error: any) {
       return {
         data: undefined,

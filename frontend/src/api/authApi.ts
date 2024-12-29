@@ -1,6 +1,7 @@
 import useRootApiService from "@/api/rootApi";
 import ApiResponseDto from "@/dto/ApiResponseDto";
-import { SignInDto, TokenResponseDto } from "@/dto/SingInDto";
+import { TokenResponseDto } from "@/dto/AuthDto";
+import { SignInDto } from "@/dto/UsersDto";
 
 const useAuthService = () => {
   const { PostWithoutRefreshToken } = useRootApiService();
