@@ -66,38 +66,46 @@ async def get_books_list(
 ) -> tuple[list[Book], int]:
     """
     Retrieve a paginated list of books from the database, optionally filtered
-    by title and/or year.
+    by title and/or year, and return the total count of books in the database.
 
     :param session: The asynchronous database session used for the query.
     :param limit: The maximum number of books to retrieve.
     :param offset: The number of books to skip before starting to retrieve
         results.
-    :param book_title: An optional substring to filter books by their title
-        (default is None).
+    :param book_title: An optional substring to filter books by their title.
+        If provided, only books with titles containing this substring will
+        be returned.
     :param book_year: An optional year to filter books by their publication
-        year (default is None).
-    :return: A tuple containing a list of Book objects that match the filters
-        and the total count of books, or None if no filters are provided or no
-        books match.
+        year. If provided, only books published in this year will be returned.
+    :return: A tuple containing:
+        - A list of `Book` objects that match the provided filters (if any).
+        - The total count of books in the database
+        (not filtered by title or year).
     """
     async with session:
-        query_rows = select(func.count(Book.id))
-        total_count = await session.scalar(query_rows)
-
-    if book_title and book_year:
-        query = select(Book).where(
-            and_(Book.title.contains(book_title), Book.year == book_year)
-        )
-    elif book_title:
-        query = select(Book).where(Book.title.contains(book_title))
-    elif book_year:
-        query = select(Book).where(Book.year == book_year)
-    else:
         query = select(Book)
+        count_query = select(func.count(Book.id))
 
-    async with session:
-        books_db = await session.scalars(query.limit(limit).offset(offset))
-        authors_list = books_db.all()
+        has_filter = True
+
+        if book_title and book_year:
+            filter_condition = and_(
+                Book.title.contains(book_title), Book.year == book_year
+            )
+        elif book_title:
+            filter_condition = Book.title.contains(book_title)
+        elif book_year:
+            filter_condition = Book.year == book_year
+        else:
+            has_filter = False
+
+        if has_filter:
+            query = query.where(filter_condition)
+            count_query = count_query.filter(filter_condition)
+
+        total_count = await session.scalar(count_query)
+        authors_db = await session.scalars(query.limit(limit).offset(offset))
+        authors_list = authors_db.all()
 
     return list(authors_list), total_count or 0
 

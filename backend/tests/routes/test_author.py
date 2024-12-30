@@ -162,7 +162,7 @@ async def test_list_authors_filter_name_should_return_5_authors(
 async def test_list_authors_filter_name_should_return_empty(
     async_client: AsyncClient, async_session: AsyncSession
 ) -> None:
-    expected_results = 5
+    expected_results = 0
     async with async_session.begin():
         async_session.add_all(AuthorFactory.create_batch(5))
 
@@ -190,13 +190,32 @@ async def test_list_authors_filter_name_empty_return_all_authors(
 async def test_list_authors_pagination_should_return_20_authors(
     async_client: AsyncClient, async_session: AsyncSession
 ) -> None:
-    expected_books = 20
+    expected_authors = 20
     expected_results = 25
 
     async with async_session.begin():
         async_session.add_all(AuthorFactory.create_batch(25))
 
-    response = await async_client.get('/author/?name=author')
+    response = await async_client.get('/author?name=author')
 
-    assert len(response.json()['authors']) == expected_books
+    assert len(response.json()['authors']) == expected_authors
+    assert response.json()['total_results'] == expected_results
+
+
+async def test_list_authors_pagination_with_name_filter_return_10_authors(
+    async_client: AsyncClient, async_session: AsyncSession
+) -> None:
+    expected_authors = 10
+    expected_results = 20
+
+    async with async_session.begin():
+        async_session.add_all(AuthorFactory.create_batch(20))
+        author_different_name = AuthorFactory.create_batch(20, name='other')
+        for n, book in enumerate(author_different_name):
+            book.name = f'other_{n}'
+        async_session.add_all(author_different_name)
+
+    response = await async_client.get('/author?name=author&limit=10&offset=10')
+
+    assert len(response.json()['authors']) == expected_authors
     assert response.json()['total_results'] == expected_results
