@@ -160,8 +160,8 @@ async def delete_author(
     return Message(message='Author deleted from MADR.')
 
 
-@router.delete(
-    '',
+@router.post(
+    '/delete/batch',
     response_model=Message,
     dependencies=[Depends(get_current_user)],
     responses={
@@ -184,7 +184,7 @@ async def delete_author_batch(
     if not all(id in auhtor_ids_db for id in authors_ids_in):
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
-            detail='There are ids not found in database',
+            detail='There are IDs that were not found in the database.',
         )
 
     await author_service.delete_authors_batch(

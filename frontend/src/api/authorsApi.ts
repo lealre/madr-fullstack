@@ -9,7 +9,7 @@ import {
 } from "@/dto/AuthorsDto";
 
 const useAuthorsService = () => {
-  const { Get, Post, Delete } = useRootApiService();
+  const { Get, Post } = useRootApiService();
 
   const getAuthors = async (
     params?: GetAuthorsParams
@@ -33,8 +33,8 @@ const useAuthorsService = () => {
   const deleteAuthorsBatch = async (
     data: DeleteAuthorsBatchDto
   ): Promise<ApiResponseDto<MessageDto>> => {
-    const response = await Delete<MessageDto, DeleteAuthorsBatchDto>(
-      "/author",
+    const response = await Post<MessageDto, DeleteAuthorsBatchDto>(
+      "/author/delete/batch",
       data
     );
 
