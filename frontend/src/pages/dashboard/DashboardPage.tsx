@@ -26,6 +26,7 @@ const Dashboard: React.FC = () => {
   const [authors, setAuthors] = useState<AuthorResponseDto[]>([]);
   const [books, setBooks] = useState<BookResponseDto[]>([]);
   const [tab, setTab] = useState<TabProps>({ value: "authors" });
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalResults, setTotalResults] = useState<number>(1);
@@ -41,7 +42,7 @@ const Dashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchAuthors(currentPage);
+    fetchAuthors();
     getCurrentUserInfo();
   }, [currentPage]);
 
@@ -58,12 +59,17 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const fetchAuthors = async (page: number): Promise<void> => {
+  const fetchAuthors = async (): Promise<void> => {
     if (isLoading) return;
     setIsLoading(true);
-    const offset = (page - 1) * pageSize;
+    const offset = (currentPage - 1) * pageSize;
 
-    const response = await getAuthors({ limit: pageSize, offset: offset });
+    
+    const response = await getAuthors({
+      limit: pageSize,
+      offset: offset,
+      ...(searchQuery && { name: searchQuery }),
+    });
     if (response.data && response.success) {
       console.log(response.data);
       setAuthors(response.data.authors);
@@ -95,7 +101,7 @@ const Dashboard: React.FC = () => {
 
   const changeTabView = (e: TabProps) => {
     setTab(e);
-    e.value === "authors" ? fetchAuthors(currentPage) : fetchBooks();
+    e.value === "authors" ? fetchAuthors() : fetchBooks();
   };
 
   return (
@@ -160,14 +166,15 @@ const Dashboard: React.FC = () => {
           {tab.value === "authors" ? (
             <Flex direction="column" gap={3}>
               <AuthorsTable
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
                 authors={authors}
                 fetchAuthors={fetchAuthors}
-                page={pageProps.currentPage}
-              />
+                />
               <Center>
                 <Pagination {...pageProps}></Pagination>
               </Center>
-            </Flex>
+                </Flex>
           ) : (
             <BooksTable books={books} />
           )}

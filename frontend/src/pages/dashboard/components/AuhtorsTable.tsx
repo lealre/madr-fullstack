@@ -30,8 +30,9 @@ import { AuthorsTableProps } from "@/pages/dashboard/Types";
 
 const AuthorsTable: React.FC<AuthorsTableProps> = ({
   authors,
+  searchQuery,
+  setSearchQuery,
   fetchAuthors,
-  page,
 }) => {
   const { createAuthor, deleteAuthorsBatch } = useAuthorsService();
   const {
@@ -41,7 +42,6 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({
     formState: { errors },
   } = useForm<PostBodyCreateAuthorDto>({ mode: "onChange" });
   const [authorsIDs, setAuthorsIDs] = useState<number[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
   const hasSelection = authorsIDs.length > 0;
   const indeterminate = hasSelection && authorsIDs.length < authors.length;
 
@@ -78,7 +78,7 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({
         title: response.data.message,
         type: "success",
       });
-      fetchAuthors(page);
+      fetchAuthors();
       setAuthorsIDs([]);
     } else {
       toaster.create({
@@ -88,8 +88,9 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({
     }
   };
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     console.log("Searching for authors:", searchQuery);
+    fetchAuthors();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

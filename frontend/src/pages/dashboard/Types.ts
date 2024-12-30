@@ -14,8 +14,9 @@ export interface TabProps {
 
 export interface AuthorsTableProps {
   authors: AuthorResponseDto[];
-  page: number;
-  fetchAuthors: (page: number) => void;
+  searchQuery: string;
+  setSearchQuery: (value: string) => void
+  fetchAuthors: () => void;
 }
 
 export interface BooksTableProps {
