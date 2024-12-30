@@ -1,5 +1,6 @@
 from http import HTTPStatus
 
+import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -198,11 +199,11 @@ async def test_list_books_empty(async_client: AsyncClient) -> None:
     assert response.json()['total_results'] == expected_results
 
 
-async def test_list_books_filter_name_should_return_5_books(
+async def test_list_books_filter_title_should_return_5_books(
     async_client: AsyncClient, async_session: AsyncSession, author: Author
 ) -> None:
     expected_books = 5
-    expected_results = 10
+    expected_results = 5
     async with async_session.begin():
         async_session.add_all(BookFactory.create_batch(5))
         books_with_title = BookFactory.create_batch(5, title='title')
@@ -216,10 +217,10 @@ async def test_list_books_filter_name_should_return_5_books(
     assert response.json()['total_results'] == expected_results
 
 
-async def test_list_books_filter_name_should_return_empty(
+async def test_list_books_filter_title_should_return_empty(
     async_client: AsyncClient, async_session: AsyncSession, author: Author
 ) -> None:
-    expected_results = 5
+    expected_results = 0
     async with async_session.begin():
         async_session.add_all(BookFactory.create_batch(5))
 
@@ -233,7 +234,7 @@ async def test_list_books_filter_year_should_return_5_books(
     async_client: AsyncClient, async_session: AsyncSession, author: Author
 ) -> None:
     expected_books = 5
-    expected_results = 10
+    expected_results = 5
     async with async_session.begin():
         async_session.add_all(BookFactory.create_batch(5, year=2000))
         async_session.add_all(BookFactory.create_batch(5, year=2024))
@@ -247,7 +248,7 @@ async def test_list_books_filter_year_should_return_5_books(
 async def test_list_books_filter_year_should_return_empty(
     async_client: AsyncClient, async_session: AsyncSession, author: Author
 ) -> None:
-    expected_results = 5
+    expected_results = 0
     async with async_session.begin():
         async_session.add_all(BookFactory.create_batch(5, year=2000))
 
@@ -261,7 +262,7 @@ async def test_list_books_filter_combined_should_return_5_books(
     async_client: AsyncClient, async_session: AsyncSession, author: Author
 ) -> None:
     expected_books = 5
-    expected_results = 7
+    expected_results = 5
     books = BookFactory.create_batch(7, year=2000)
     books[-1].title = 'title'
     books[0].year = 2024
@@ -274,15 +275,24 @@ async def test_list_books_filter_combined_should_return_5_books(
     assert response.json()['total_results'] == expected_results
 
 
-async def test_list_books_pagination_should_return_20_books(
-    async_client: AsyncClient, async_session: AsyncSession, author: Author
+@pytest.mark.parametrize(
+    ('limit', 'offset'), [(10, 0), (10, 10), (5, 0), (5, 5)]
+)
+async def test_list_books_pagination_with_filter(
+    async_client: AsyncClient,
+    async_session: AsyncSession,
+    author: Author,
+    limit: int,
+    offset: int,
 ) -> None:
-    expected_books = 20
+    expected_books = limit
     expected_results = 25
     async with async_session.begin():
         async_session.add_all(BookFactory.create_batch(25, year=2000))
 
-    response = await async_client.get('/book?year=2000')
+    response = await async_client.get(
+        f'/book?year=2000&limit={limit}&offset={offset}'
+    )
 
     assert len(response.json()['books']) == expected_books
     assert response.json()['total_results'] == expected_results

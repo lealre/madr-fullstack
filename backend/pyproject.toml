@@ -17,12 +17,12 @@ itsdangerous = "^2.2.0"
 python = '3.12.*'
 python-multipart = '^0.0.9'
 pydantic-settings = '^2.4.0'
-pre-commit = "^4.0.1"
 pyjwt = '^2.9.0'
 pwdlib = {extras = ['argon2'], version = '^0.2.0'}
 sqlalchemy = '^2.0.31'
 
 [tool.poetry.group.dev.dependencies]
+pre-commit = "^4.0.1"
 factory-boy = '^3.3.0'
 freezegun = '^1.5.1'
 gevent = "^24.11.1"
@@ -39,6 +39,7 @@ addopts = '-p no:warnings'
 
 [tool.coverage.run]
 concurrency = ["gevent"]
+omit = ["*/utils/*", "__init__.py"]
 
 [tool.ruff]
 line-length = 79
@@ -63,7 +64,7 @@ exclude = [ ".venv", "migrations"]
 run = 'fastapi dev src/app.py'
 superuser = 'python src/utils/create_supersuer.py'
 pre_test = 'task lint'
-test = 'pytest --cov=src -vv'
+test = 'pytest --cov=src --cov-report=term-missing:skip-covered -vv'
 post_test = 'coverage html'
 lint = 'ruff check . && ruff check . --diff'
 format = 'ruff check . --fix && ruff format .'
