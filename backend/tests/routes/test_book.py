@@ -117,6 +117,68 @@ async def test_delete_book_not_authenticated(
     assert response.json() == {'detail': 'Not authenticated'}
 
 
+async def test_delete_books_in_batch(
+    async_client: AsyncClient,
+    async_session: AsyncSession,
+    user_token: str,
+    author: Author,
+) -> None:
+    range_list = 20
+    async with async_session.begin():
+        async_session.add_all(BookFactory.create_batch(range_list))
+
+    response = await async_client.post(
+        '/book/delete/batch',
+        headers={'Authorization': f'Bearer {user_token}'},
+        json={'ids': [n for n in range(1, range_list + 1)]},
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {'message': 'Books deleted from MADR.'}
+
+    response = await async_client.get(
+        '/book',
+        headers={'Authorization': f'Bearer {user_token}'},
+    )
+
+    assert response.json()['books'] == []
+    assert response.json()['total_results'] == 0
+
+
+async def test_delete_books_in_batch_ids_not_found(
+    async_client: AsyncClient,
+    async_session: AsyncSession,
+    user_token: str,
+    author: Author,
+) -> None:
+    range_list = 20
+    async with async_session.begin():
+        async_session.add_all(BookFactory.create_batch(range_list))
+
+    response = await async_client.post(
+        '/book/delete/batch',
+        headers={'Authorization': f'Bearer {user_token}'},
+        json={'ids': [n for n in range(1, range_list + 5)]},
+    )
+
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json() == {
+        'detail': 'There are IDs that were not found in the database.'
+    }
+
+
+async def test_delete_books_in_batch_not_authenticated(
+    async_client: AsyncClient, author: Author
+) -> None:
+    response = await async_client.post(
+        '/book/delete/batch',
+        json={'ids': [1, 2, 3]},
+    )
+
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
+    assert response.json() == {'detail': 'Not authenticated'}
+
+
 async def test_patch_book(
     async_client: AsyncClient,
     async_session: AsyncSession,

@@ -1,4 +1,4 @@
-from sqlalchemy import and_, func, select
+from sqlalchemy import and_, delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models import Book
@@ -110,6 +110,24 @@ async def get_books_list(
     return list(authors_list), total_count or 0
 
 
+async def get_books_ids_list(
+    session: AsyncSession, book_ids: list[int]
+) -> list[int]:
+    """
+    Retrieve a list of book IDs that match the given list of IDs.
+
+    :param session: The asynchronous database session used for the query.
+    :param book_ids: A list of book IDs to search for in the database.
+    :return: A list of book IDs that exist in the database.
+    """
+    async with session:
+        authors_list = await session.scalars(
+            select(Book.id).filter(Book.id.in_(book_ids))
+        )
+
+    return list(authors_list.all())
+
+
 async def update_book_in_db(
     session: AsyncSession, book_info: BookUpdate, book_to_update: Book
 ) -> Book:
@@ -142,3 +160,20 @@ async def delete_book(session: AsyncSession, book_to_delete: Book) -> None:
     """
     async with session.begin():
         await session.delete(book_to_delete)
+
+
+async def delete_books_batch(
+    session: AsyncSession, book_ids: list[int]
+) -> None:
+    """
+    Delete books in bulk based on a list of their IDs.
+
+    This function removes all books whose IDs match the provided list from
+    the database.
+
+    :param session: The asynchronous database session used for the operation.
+    :param book_ids: A list of book IDs to delete from the database.
+    :return: None
+    """
+    async with session.begin():
+        await session.execute(delete(Book).where(Book.id.in_(book_ids)))

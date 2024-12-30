@@ -25,3 +25,7 @@ class BookUpdate(BaseModel):
 class BookList(BaseModel):
     books: list[BookPublic]
     total_results: int
+
+
+class DeteleBooksBulk(BaseModel):
+    ids: list[int]

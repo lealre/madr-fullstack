@@ -5,7 +5,13 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from src.api.dependencies import CurrentUser, SessionDep, get_current_user
 from src.schemas.base import Message
-from src.schemas.books import BookList, BookPublic, BookSchema, BookUpdate
+from src.schemas.books import (
+    BookList,
+    BookPublic,
+    BookSchema,
+    BookUpdate,
+    DeteleBooksBulk,
+)
 from src.schemas.responses import response_model
 from src.services import author_service, book_service
 
@@ -154,3 +160,37 @@ async def delete_book(session: SessionDep, book_id: int) -> Message:
     await book_service.delete_book(session=session, book_to_delete=book_db)
 
     return Message(message='Book deleted from MADR.')
+
+
+@router.post(
+    '/delete/batch',
+    response_model=Message,
+    dependencies=[Depends(get_current_user)],
+    responses={
+        HTTPStatus.NOT_FOUND: response_model,
+        HTTPStatus.UNAUTHORIZED: response_model,
+    },
+)
+async def delete_books_in_batch(
+    session: SessionDep,
+    books_ids: DeteleBooksBulk,
+) -> Message:
+    """
+    Delete books in batch by their list of ids.
+    """
+    book_ids_db = await book_service.get_books_ids_list(
+        session=session, book_ids=books_ids.ids
+    )
+
+    book_ids_in = list(set(books_ids.ids))
+    if not all(id in book_ids_db for id in book_ids_in):
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='There are IDs that were not found in the database.',
+        )
+
+    await book_service.delete_books_batch(
+        session=session, book_ids=book_ids_in
+    )
+
+    return Message(message='Books deleted from MADR.')
