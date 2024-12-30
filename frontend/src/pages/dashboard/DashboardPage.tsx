@@ -30,7 +30,7 @@ const Dashboard: React.FC = () => {
 
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalResults, setTotalResults] = useState<number>(1);
-  const pageSize = 8;
+  const pageSize = 20;
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -64,7 +64,6 @@ const Dashboard: React.FC = () => {
     setIsLoading(true);
     const offset = (currentPage - 1) * pageSize;
 
-    
     const response = await getAuthors({
       limit: pageSize,
       offset: offset,
@@ -108,79 +107,94 @@ const Dashboard: React.FC = () => {
     <>
       <Header />
 
-      <Container maxW="1000px" mx="auto">
-        <Flex mt={1} align="center">
-          <FaUserAlt size={20} style={{ marginRight: "8px" }} />
-          {currentUser ? (
-            <>
-              <Text fontSize="lg" alignItems="center">
-                {currentUser.username} ({currentUser.email})
-              </Text>
-            </>
-          ) : (
-            <Text></Text>
-          )}
-        </Flex>
-        <Box mt={8}>
-          <Flex borderBottom="1px solid black" mb={3} justify="space-between">
-            <Text fontWeight="semibold" fontSize="40px" mb={0}>
-              Dashboard Area
-            </Text>
-
-            <Tabs.Root
-              defaultValue="authors"
-              onValueChange={(e) => changeTabView(e)}
-            >
-              <Tabs.List
-                display="flex"
-                alignItems="flex-end"
-                borderBottom="0px"
-                height="100%"
-              >
-                <Tabs.Trigger
-                  value="authors"
-                  _selected={{
-                    color: "black",
-                    fontWeight: "bold",
-                    borderBottom: "3px solid teal",
-                  }}
-                >
-                  <LuUser />
-                  Authors
-                </Tabs.Trigger>
-                <Tabs.Trigger
-                  value="books"
-                  _selected={{
-                    color: "black",
-                    fontWeight: "bold",
-                    borderBottom: "3px solid teal",
-                  }}
-                >
-                  <IoBookSharp />
-                  Books
-                </Tabs.Trigger>
-              </Tabs.List>
-            </Tabs.Root>
+      <Flex direction="column" justifyContent="space-between" minHeight="100vh">
+        <Container maxW="1000px">
+          <Flex mt={1} align="center">
+            <FaUserAlt size={20} style={{ marginRight: "8px" }} />
+            {currentUser ? (
+              <>
+                <Text fontSize="lg" alignItems="center">
+                  {currentUser.username} ({currentUser.email})
+                </Text>
+              </>
+            ) : (
+              <Text></Text>
+            )}
           </Flex>
+          <Box mt={8}>
+            <Flex borderBottom="1px solid black" mb={3} justify="space-between">
+              <Text fontWeight="semibold" fontSize="40px" mb={0}>
+                Dashboard Area
+              </Text>
 
-          {tab.value === "authors" ? (
-            <Flex direction="column" gap={3}>
-              <AuthorsTable
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                authors={authors}
-                fetchAuthors={fetchAuthors}
+              <Tabs.Root
+                defaultValue="authors"
+                onValueChange={(e) => changeTabView(e)}
+              >
+                <Tabs.List
+                  display="flex"
+                  alignItems="flex-end"
+                  borderBottom="0px"
+                  height="100%"
+                >
+                  <Tabs.Trigger
+                    value="authors"
+                    _selected={{
+                      color: "black",
+                      fontWeight: "bold",
+                      borderBottom: "3px solid teal",
+                    }}
+                  >
+                    <LuUser />
+                    Authors
+                  </Tabs.Trigger>
+                  <Tabs.Trigger
+                    value="books"
+                    _selected={{
+                      color: "black",
+                      fontWeight: "bold",
+                      borderBottom: "3px solid teal",
+                    }}
+                  >
+                    <IoBookSharp />
+                    Books
+                  </Tabs.Trigger>
+                </Tabs.List>
+              </Tabs.Root>
+            </Flex>
+
+            {tab.value === "authors" ? (
+              <Flex direction="column" gap={3}>
+                <AuthorsTable
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  authors={authors}
+                  fetchAuthors={fetchAuthors}
                 />
-              <Center>
-                <Pagination {...pageProps}></Pagination>
-              </Center>
-                </Flex>
-          ) : (
-            <BooksTable books={books} />
-          )}
+                <Center>
+                  <Pagination {...pageProps}></Pagination>
+                </Center>
+              </Flex>
+            ) : (
+              <BooksTable books={books} />
+            )}
+          </Box>
+          <Toaster />
+        </Container>
+
+        <Box
+          as="footer"
+          bg="teal.600"
+          py={4}
+          textAlign="center"
+          height="100px"
+          mt={8}
+        >
+          <Text fontSize="sm">
+            © {new Date().getFullYear()} Your Company Name. All rights reserved.
+          </Text>
         </Box>
-        <Toaster />
-      </Container>
+      </Flex>
     </>
   );
 };

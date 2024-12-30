@@ -20,8 +20,6 @@ const Pagination: React.FC<PageProps> = (pageProps) => {
       onPageChange={(e) => {
         setCurrentPage(e.page);
       }}
-      size="sm"
-      color="teal.600"
     >
       <HStack>
         <PaginationPrevTrigger color="black" />

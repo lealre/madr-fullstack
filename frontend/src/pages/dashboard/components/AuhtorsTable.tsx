@@ -89,7 +89,6 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({
   };
 
   const handleSearch = async () => {
-    console.log("Searching for authors:", searchQuery);
     fetchAuthors();
   };
 
@@ -104,8 +103,12 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({
       <Flex gap="4" justify="space-between" mb={2}>
         <InputGroup flex="1" startElement={<LuSearch />}>
           <Input
+            borderColor="border.emphasized"
+            borderWidth={2}
+            focusRing="inside"
+            focusRingColor="teal.focusRing"
             maxW="400px"
-            placeholder="Search authors"
+            placeholder="Search by author name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -163,11 +166,13 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({
         </DialogRoot>
       </Flex>
 
-      <Table.Root key="outline" variant="line" borderRadius="8px">
+      <Table.Root variant="line" size="sm">
         <Table.Header bg="teal.500">
-          <Table.Row>
+          <Table.Row borderBottomWidth={3} borderColor="border.emphasized">
             <Table.ColumnHeader width="10%">
               <Checkbox
+                borderColor="black"
+                borderWidth={1}
                 top="1"
                 _hover={{ cursor: "pointer" }}
                 aria-label="Select all rows"
@@ -191,15 +196,19 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({
           {authors.length > 0 ? (
             authors.map((item) => (
               <Table.Row
+                borderBottomWidth={2}
+                borderColor="border.emphasized"
                 key={item.id}
                 data-selected={authorsIDs.includes(item.id) ? "" : undefined}
                 bg={authorsIDs.includes(item.id) ? "teal.100" : "white"}
               >
                 <Table.Cell>
                   <Checkbox
+                    borderColor="border.inverted"
+                    borderWidth={1}
+                    top="1"
                     variant="solid"
                     colorPalette="teal"
-                    top="1"
                     _hover={{ cursor: "pointer" }}
                     aria-label="Select row"
                     checked={authorsIDs.includes(item.id)}
