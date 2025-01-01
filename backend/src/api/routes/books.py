@@ -8,6 +8,7 @@ from src.schemas.base import Message
 from src.schemas.books import (
     BookList,
     BookPublic,
+    BookResponseCreate,
     BookSchema,
     BookUpdate,
     DeteleBooksBulk,
@@ -20,7 +21,7 @@ router = APIRouter()
 
 @router.post(
     '',
-    response_model=BookPublic,
+    response_model=BookResponseCreate,
     status_code=HTTPStatus.CREATED,
     dependencies=[Depends(get_current_user)],
     responses={
@@ -56,7 +57,9 @@ async def add_book(session: SessionDep, book_in: BookSchema) -> Any:
 
     new_book = await book_service.add_book(session=session, book=book_in)
 
-    return new_book
+    return BookResponseCreate(
+        **new_book.to_dict(), author=new_book.author.name
+    )
 
 
 @router.get(
@@ -80,7 +83,7 @@ async def get_book_by_id(book_id: int, session: SessionDep) -> Any:
             status_code=HTTPStatus.NOT_FOUND, detail='Book not found in MADR.'
         )
 
-    return book_db
+    return BookPublic(**book_db.to_dict(), author=book_db.author.name)
 
 
 @router.get('', response_model=BookList)
@@ -102,7 +105,11 @@ async def get_books_like(
         offset=offset,
     )
 
-    return {'books': books, 'total_results': total_results}
+    book_list = [
+        BookPublic(**book.to_dict(), author=book.author.name) for book in books
+    ]
+
+    return {'books': book_list, 'total_results': total_results}
 
 
 @router.patch(
@@ -128,11 +135,13 @@ async def update_book(
             status_code=HTTPStatus.NOT_FOUND, detail='Book not found in MADR.'
         )
 
-    db_book = await book_service.update_book_in_db(
+    book_updated = await book_service.update_book_in_db(
         session=session, book_info=book, book_to_update=book_db
     )
 
-    return db_book
+    return BookPublic(
+        **book_updated.to_dict(), author=book_updated.author.name
+    )
 
 
 @router.delete(

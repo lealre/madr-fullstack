@@ -1,5 +1,6 @@
 from sqlalchemy import and_, delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from src.models import Book
 from src.schemas.books import BookSchema, BookUpdate
@@ -20,6 +21,9 @@ async def add_book(session: AsyncSession, book: BookSchema) -> Book:
     async with session.begin():
         session.add(new_book)
 
+    async with session.begin():
+        await session.refresh(new_book, attribute_names=['author'])
+
     return new_book
 
 
@@ -33,7 +37,11 @@ async def get_book_by_id(session: AsyncSession, book_id: int) -> Book | None:
         ID exists.
     """
     async with session:
-        book_db = await session.scalar(select(Book).where(Book.id == book_id))
+        book_db = await session.scalar(
+            select(Book)
+            .options(selectinload(Book.author))
+            .where(Book.id == book_id)
+        )
 
     return book_db
 
@@ -51,7 +59,9 @@ async def get_book_by_title(
     """
     async with session:
         book_db = await session.scalar(
-            select(Book).where(Book.title == book_title)
+            select(Book)
+            .options(selectinload(Book.author))
+            .where(Book.title == book_title)
         )
 
     return book_db
@@ -83,7 +93,7 @@ async def get_books_list(
         (not filtered by title or year).
     """
     async with session:
-        query = select(Book)
+        query = select(Book).options(selectinload(Book.author))
         count_query = select(func.count(Book.id))
 
         has_filter = True
@@ -146,6 +156,9 @@ async def update_book_in_db(
 
     async with session.begin():
         session.add(book_to_update)
+
+    async with session.begin():
+        await session.refresh(book_to_update, attribute_names=['author'])
 
     return book_to_update
 

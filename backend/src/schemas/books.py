@@ -18,11 +18,15 @@ class BookPublic(BaseModel):
     id: int
     title: str
     year: int = Field(gt=0, lt=2025)
-    author_id: int = Field(gt=0)
+    author: str
+
+
+class BookResponseCreate(BookPublic):
+    author_id: int
 
 
 class BookUpdate(BaseModel):
-    year: int = Field(gt=0)
+    year: int = Field(gt=0, lt=2025)
 
 
 class BookList(BaseModel):
