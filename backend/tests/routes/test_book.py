@@ -23,6 +23,7 @@ async def test_add_book(
         'year': 2024,
         'title': 'book title',
         'author_id': 1,
+        'author': author.name,
     }
 
 
@@ -206,7 +207,7 @@ async def test_patch_book(
         'id': book.id,
         'year': year_expected,
         'title': book.title,
-        'author_id': book.author_id,
+        'author': author.name,
     }
 
 
@@ -240,7 +241,7 @@ async def test_get_book_by_id(async_client: AsyncClient, book: Book) -> None:
         'id': book.id,
         'year': book.year,
         'title': book.title,
-        'author_id': book.author_id,
+        'author': book.author.name,
     }
 
 

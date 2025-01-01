@@ -16,7 +16,7 @@ from src.api.dependencies import get_session
 from src.app import app
 from src.core.security import get_password_hash
 from src.core.settings import settings
-from src.models import Author, Book, User, table_registry
+from src.models import Author, Base, Book, User
 from src.schemas.token import Token
 from src.schemas.users import UserResponse
 
@@ -76,8 +76,8 @@ async def async_session(
     async_engine = create_async_engine(async_db_url, pool_pre_ping=True)
 
     async with async_engine.begin() as conn:
-        await conn.run_sync(table_registry.metadata.drop_all)
-        await conn.run_sync(table_registry.metadata.create_all)
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
 
     async_session = async_sessionmaker(
         bind=async_engine,
