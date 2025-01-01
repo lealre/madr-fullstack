@@ -1,16 +1,23 @@
 from datetime import datetime
 
 from sqlalchemy import ForeignKey, func
-from sqlalchemy.orm import Mapped, mapped_column, registry, relationship
+from sqlalchemy.ext.asyncio import AsyncAttrs
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
-table_registry = registry()
+
+class Base(DeclarativeBase, AsyncAttrs):
+    __abstract__ = True
+
+    def to_dict(self):
+        return {
+            field.name: getattr(self, field.name) for field in self.__table__.c
+        }
 
 
-@table_registry.mapped_as_dataclass
-class User:
+class User(Base):
     __tablename__ = 'users'
 
-    id: Mapped[int] = mapped_column(init=False, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(unique=True)
     password_hash: Mapped[str]
     email: Mapped[str] = mapped_column(unique=True)
@@ -20,36 +27,30 @@ class User:
     is_active: Mapped[bool] = mapped_column(default=True)
     is_verified: Mapped[bool] = mapped_column(default=False)
     google_sub: Mapped[str] = mapped_column(default=None, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        init=False, server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
-        init=False, onupdate=func.now(), nullable=True
+        onupdate=func.now(), nullable=True
     )
 
 
-@table_registry.mapped_as_dataclass
-class Book:
+class Book(Base):
     __tablename__ = 'books'
 
-    id: Mapped[int] = mapped_column(init=False, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
     year: Mapped[int]
     title: Mapped[str] = mapped_column(unique=True)
     author_id: Mapped[int] = mapped_column(ForeignKey('authors.id'))
     author: Mapped['Author'] = relationship(
-        init=False,
         back_populates='books',
     )
 
 
-@table_registry.mapped_as_dataclass
-class Author:
+class Author(Base):
     __tablename__ = 'authors'
 
-    id: Mapped[int] = mapped_column(init=False, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(unique=True)
     books: Mapped[list[Book]] = relationship(
-        init=False,
         back_populates='author',
         cascade='all, delete-orphan',
     )
