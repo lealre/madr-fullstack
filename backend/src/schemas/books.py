@@ -4,8 +4,8 @@ from pydantic import BaseModel, Field, field_validator
 
 
 class BookSchema(BaseModel):
-    year: int = Field(gt=0, lt=2025)
     title: str
+    year: int = Field(gt=0, lt=2025)
     author_id: int = Field(gt=0)
 
     @field_validator('title')
@@ -14,8 +14,11 @@ class BookSchema(BaseModel):
         return re.sub(r'\s+', ' ', v)
 
 
-class BookPublic(BookSchema):
+class BookPublic(BaseModel):
     id: int
+    title: str
+    year: int = Field(gt=0, lt=2025)
+    author_id: int = Field(gt=0)
 
 
 class BookUpdate(BaseModel):

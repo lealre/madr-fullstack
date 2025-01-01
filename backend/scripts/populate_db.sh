@@ -19,9 +19,9 @@ echo "Running populate_table.py..."
  poetry run python src/utils/populate_table.py
 
 if [ $? -eq 0 ]; then
-    echo "Successfully ran sync_stripe_db.py."
+    echo "Successfully ran populate_table.py."
 else
-    echo "Error running sync_stripe_db.py. Exiting."
+    echo "Error running populate_table.py. Exiting."
     exit 1
 fi
 

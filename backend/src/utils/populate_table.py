@@ -3,6 +3,8 @@ from sqlalchemy.exc import IntegrityError
 
 from src.core.database import AsyncSessionLocal
 from src.models import Author, Book
+from src.schemas.authors import AuthorSchema
+from src.schemas.books import BookSchema
 from src.utils import DATA
 
 
@@ -10,7 +12,8 @@ async def populate_authors() -> None:
     try:  # noqa: PLR1702
         async with AsyncSessionLocal() as session:
             for author, books in DATA.items():
-                new_author = Author(name=author)  # type: ignore[call-arg]
+                author_schema = AuthorSchema(name=author)
+                new_author = Author(**author_schema.model_dump())  # type: ignore[call-arg]
                 try:
                     async with session.begin():
                         session.add(new_author)
@@ -18,8 +21,11 @@ async def populate_authors() -> None:
                     pass
 
                 for title, year in books.items():
-                    new_book = Book(  # type: ignore[call-arg]
+                    book_schema = BookSchema(  # type: ignore[call-arg]
                         title=title, year=year, author_id=new_author.id
+                    )
+                    new_book = Book(  # type: ignore[call-arg]
+                        **book_schema.model_dump()
                     )
                     try:
                         async with session.begin():

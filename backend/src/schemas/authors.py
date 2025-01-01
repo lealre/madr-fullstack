@@ -12,8 +12,10 @@ class AuthorSchema(BaseModel):
         return re.sub(r'\s+', ' ', v)
 
 
-class AuthorPublic(AuthorSchema):
+# Not inheriting from AuthorSchema to avoid the @field_validator
+class AuthorPublic(BaseModel):
     id: int
+    name: str
 
 
 class AuthorList(BaseModel):
