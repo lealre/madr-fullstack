@@ -1,11 +1,23 @@
 import React, { useState } from "react";
 import { GrAdd } from "react-icons/gr";
 import { LuSearch } from "react-icons/lu";
-import { Button, Flex, Input, Stack, Table } from "@chakra-ui/react";
+import {
+  Button,
+  createListCollection,
+  Flex,
+  Input,
+  ListCollection,
+  Stack,
+  Table,
+} from "@chakra-ui/react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { InputGroup } from "@/components/ui/input-group";
 
-import { BooksTableProps } from "@/pages/dashboard/Types";
+import {
+  bookFormSchema,
+  BookFormSchema,
+  BooksTableProps,
+} from "@/pages/dashboard/Types";
 import {
   ActionBarContent,
   ActionBarRoot,
@@ -25,11 +37,21 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Field } from "@/components/ui/field";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { PostBodyCreateBookDto } from "@/dto/BooksDto";
+import { AuthorResponseDto } from "@/dto/AuthorsDto";
+import {
+  SelectContent,
+  SelectItem,
+  SelectRoot,
+  SelectTrigger,
+  SelectValueText,
+} from "@/components/ui/select";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 const BooksTable: React.FC<BooksTableProps> = ({
   books,
+  authors,
   searchQuery,
   setCurrentPage,
   currentPage,
@@ -43,13 +65,37 @@ const BooksTable: React.FC<BooksTableProps> = ({
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<PostBodyCreateBookDto>({ mode: "onChange" });
+    control,
+  } = useForm<BookFormSchema>({
+    mode: "onChange",
+    resolver: zodResolver(bookFormSchema),
+  });
 
   const [booksIDs, setBooksIDs] = useState<number[]>([]);
   const hasSelection = booksIDs.length > 0;
   const indeterminate = hasSelection && booksIDs.length < books.length;
 
-  const handleAddBook = handleSubmit(async (data) => {
+  const transformAuthorsToListCollection = (authors: AuthorResponseDto[]) => {
+    return createListCollection({
+      items: authors.map((author) => ({
+        label: author.name,
+        value: String(author.id),
+      })),
+    });
+  };
+
+  const authorList: ListCollection<{
+    label: string;
+    value: string;
+  }> = transformAuthorsToListCollection(authors);
+
+  const handleAddBook = handleSubmit(async (formData) => {
+    const data: PostBodyCreateBookDto = {
+      title: formData.title,
+      year: formData.year,
+      author_id: Number(formData.authorList),
+    };
+
     const response = await createBook(data);
     if (response.data && response.success) {
       reset();
@@ -139,7 +185,7 @@ const BooksTable: React.FC<BooksTableProps> = ({
               <GrAdd size={20} color="white" />
             </Button>
           </DialogTrigger>
-          <DialogContent colorPalette="teal" bg="teal.50">
+          <DialogContent colorPalette="teal" bg="white">
             <DialogHeader>
               <DialogTitle>New Author</DialogTitle>
             </DialogHeader>
@@ -173,14 +219,52 @@ const BooksTable: React.FC<BooksTableProps> = ({
                           value: 4,
                           message: "Year cannot exceed 4 numbers",
                         },
-                        validate: {
-                          isNumeric: (value) =>
-                            !isNaN(value) || "Year must be a number",
-                          isValidYear: (value) =>
-                            (value > 0 && value <= new Date().getFullYear()) ||
-                            "Enter a valid year",
-                        },
+                        setValueAs: (value) => parseInt(value, 10),
                       })}
+                    />
+                  </Field>
+                  <Field
+                    label="Rating"
+                    invalid={!!errors.authorList}
+                    errorText={errors.authorList?.message}
+                    width="320px"
+                  >
+                    <Controller
+                      control={control}
+                      name="authorList"
+                      render={({ field }) => (
+                        <SelectRoot
+                          name={field.name}
+                          value={field.value}
+                          onValueChange={({ value }) => {
+                            field.onChange(value);
+                          }}
+                          onInteractOutside={() => field.onBlur()}
+                          collection={authorList}
+                        >
+                          <SelectTrigger>
+                            <SelectValueText placeholder="Select movie" />
+                          </SelectTrigger>
+                          <SelectContent zIndex="popover" bgColor="white">
+                            {authorList.items.map((author) => (
+                              <SelectItem
+                                item={author}
+                                key={author.value}
+                                _hover={{
+                                  bgColor: "teal.100",
+                                  cursor: "pointer",
+                                }}
+                                _selected={{
+                                  bgColor: "teal.100",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                {author.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </SelectRoot>
+                      )}
                     />
                   </Field>
                 </Stack>

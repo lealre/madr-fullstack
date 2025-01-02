@@ -19,5 +19,5 @@ export interface PostBodyCreateAuthorDto {
 }
 
 export interface DeleteAuthorsBatchDto {
-  ids: number[]
+  ids: number[];
 }
