@@ -10,17 +10,17 @@ import Dashboard from "@/pages/dashboard/DashboardPage";
 import HomePage from "@/pages/HomePage";
 import SingUpPage from "@/pages/SingUpPage";
 import PrivateRoute from "@/routes/PrivateRoute";
+import Demo from "@/pages/TestPage";
 
 export default function AppRouter() {
   return (
     <Router>
       <Routes>
-        {/* Public route */}
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/singup" element={<SingUpPage />} />
+        <Route path="/test" element={<Demo />} />
 
-        {/* Private route */}
         <Route
           path="/dashboard"
           element={
@@ -30,7 +30,6 @@ export default function AppRouter() {
           }
         />
 
-        {/* If no match, redirect to login */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
