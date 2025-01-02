@@ -19,37 +19,54 @@ import useUsersService from "@/api/usersApi";
 import { GetCurrentUserDto } from "@/dto/UsersDto";
 
 const Dashboard: React.FC = () => {
-  const { getAuthors } = useAuthorsService();
-  const { getBooks } = useBooksService();
   const { getCurrentUser } = useUsersService();
   const [currentUser, setCurrentUser] = useState<GetCurrentUserDto | null>();
-  const [authors, setAuthors] = useState<AuthorResponseDto[]>([]);
-  const [books, setBooks] = useState<BookResponseDto[]>([]);
-  const [tab, setTab] = useState<TabProps>({ value: "authors" });
-  const [searchQuery, setSearchQuery] = useState("");
 
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [totalResults, setTotalResults] = useState<number>(1);
+  const { getAuthors } = useAuthorsService();
+  const [authors, setAuthors] = useState<AuthorResponseDto[]>([]);
+  const [authorsTotalResults, setAuthorsTotalResults] = useState<number>(1);
+  const [authorsSearchQuery, setAuthorsSearchQuery] = useState("");
+  const [authorsCurrentPage, setAuthorsCurrentPage] = useState<number>(1);
+
+  const { getBooks } = useBooksService();
+  const [books, setBooks] = useState<BookResponseDto[]>([]);
+  const [booksTotalResults, setBooksTotalResults] = useState<number>(1);
+  const [booksSearchQuery, setBooksSearchQuery] = useState("");
+  const [booksCurrentPage, setBooksCurrentPage] = useState<number>(1);
+
+  const [tab, setTab] = useState<TabProps>({ value: "authors" });
+  const [isLoading, setIsLoading] = useState(false);
   const pageSize = 20;
 
-  const [isLoading, setIsLoading] = useState(false);
-
-  const pageProps: PageProps = {
-    totalResults: totalResults,
+  const authorsPageProps: PageProps = {
+    totalResults: authorsTotalResults,
     pageSize: pageSize,
-    currentPage: currentPage,
-    setCurrentPage: setCurrentPage,
+    currentPage: authorsCurrentPage,
+    setCurrentPage: setAuthorsCurrentPage,
+  };
+
+  const booksPageProps: PageProps = {
+    totalResults: booksTotalResults,
+    pageSize: pageSize,
+    currentPage: booksCurrentPage,
+    setCurrentPage: setBooksCurrentPage,
   };
 
   useEffect(() => {
-    fetchAuthors();
     getCurrentUserInfo();
-  }, [currentPage]);
+  }, []);
+
+  useEffect(() => {
+    fetchAuthors();
+  }, [authorsCurrentPage]);
+
+  useEffect(() => {
+    fetchBooks();
+  }, [booksCurrentPage]);
 
   const getCurrentUserInfo = async () => {
     const response = await getCurrentUser();
     if (response.data && response.success) {
-      console.log(response.data);
       setCurrentUser(response.data);
     } else {
       toaster.create({
@@ -62,18 +79,17 @@ const Dashboard: React.FC = () => {
   const fetchAuthors = async (): Promise<void> => {
     if (isLoading) return;
     setIsLoading(true);
-    const offset = (currentPage - 1) * pageSize;
+    const offset = (authorsCurrentPage - 1) * pageSize;
 
     const response = await getAuthors({
       limit: pageSize,
       offset: offset,
-      ...(searchQuery && { name: searchQuery }),
+      ...(authorsSearchQuery && { name: authorsSearchQuery }),
     });
     if (response.data && response.success) {
-      console.log(response.data);
       setAuthors(response.data.authors);
       const responsetTotalResults = response.data.total_results;
-      setTotalResults(responsetTotalResults);
+      setAuthorsTotalResults(responsetTotalResults);
     } else {
       toaster.create({
         title: response.error.detail,
@@ -86,9 +102,19 @@ const Dashboard: React.FC = () => {
   };
 
   const fetchBooks = async (): Promise<void> => {
-    const response = await getBooks();
+    if (isLoading) return;
+    setIsLoading(true);
+    const offset = (booksCurrentPage - 1) * pageSize;
+
+    const response = await getBooks({
+      limit: pageSize,
+      offset: offset,
+      ...(booksSearchQuery && { title: booksSearchQuery }),
+    });
     if (response.data && response.success) {
       setBooks(response.data.books);
+      const responsetTotalResults = response.data.total_results;
+      setBooksTotalResults(responsetTotalResults);
     } else {
       toaster.create({
         title: response.error.detail,
@@ -96,6 +122,8 @@ const Dashboard: React.FC = () => {
       });
       setBooks([]);
     }
+
+    setIsLoading(false);
   };
 
   const changeTabView = (e: TabProps) => {
@@ -166,17 +194,31 @@ const Dashboard: React.FC = () => {
             {tab.value === "authors" ? (
               <Flex direction="column" gap={3}>
                 <AuthorsTable
-                  searchQuery={searchQuery}
-                  setSearchQuery={setSearchQuery}
+                  searchQuery={authorsSearchQuery}
+                  setSearchQuery={setAuthorsSearchQuery}
+                  setCurrentPage={setAuthorsCurrentPage}
+                  currentPage={authorsCurrentPage}
                   authors={authors}
                   fetchAuthors={fetchAuthors}
                 />
                 <Center>
-                  <Pagination {...pageProps}></Pagination>
+                  <Pagination {...authorsPageProps}></Pagination>
                 </Center>
               </Flex>
             ) : (
-              <BooksTable books={books} />
+              <Flex direction="column" gap={3}>
+                <BooksTable
+                  searchQuery={booksSearchQuery}
+                  setSearchQuery={setBooksSearchQuery}
+                  setCurrentPage={setBooksCurrentPage}
+                  currentPage={booksCurrentPage}
+                  books={books}
+                  fetchBooks={fetchBooks}
+                />
+                <Center>
+                  <Pagination {...booksPageProps}></Pagination>
+                </Center>
+              </Flex>
             )}
           </Box>
           <Toaster />

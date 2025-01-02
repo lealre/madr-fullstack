@@ -28,9 +28,12 @@ import useAuthorsService from "@/api/authorsApi";
 import { PostBodyCreateAuthorDto } from "@/dto/AuthorsDto";
 import { AuthorsTableProps } from "@/pages/dashboard/Types";
 
+
 const AuthorsTable: React.FC<AuthorsTableProps> = ({
   authors,
   searchQuery,
+  setCurrentPage,
+  currentPage,
   setSearchQuery,
   fetchAuthors,
 }) => {
@@ -71,7 +74,6 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({
   });
 
   const deleteAuthors = async () => {
-    console.log("Atuhors to delete", authorsIDs);
     const response = await deleteAuthorsBatch({ ids: authorsIDs });
     if (response.data && response.success) {
       toaster.create({
@@ -89,7 +91,11 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({
   };
 
   const handleSearch = async () => {
-    fetchAuthors();
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    } else {
+      fetchAuthors();
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -221,10 +227,8 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({
                     }}
                   />
                 </Table.Cell>
-                <Table.Cell textStyle="sm" textAlign="start">
-                  {item.name}
-                </Table.Cell>
-                <Table.Cell textStyle="md">{item.id}</Table.Cell>
+                <Table.Cell textAlign="start">{item.name}</Table.Cell>
+                <Table.Cell>{item.id}</Table.Cell>
               </Table.Row>
             ))
           ) : (
