@@ -9,6 +9,7 @@ import {
   ListCollection,
   Stack,
   Table,
+  HStack,
 } from "@chakra-ui/react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { InputGroup } from "@/components/ui/input-group";
@@ -48,6 +49,7 @@ import {
   SelectValueText,
 } from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { NumberInputField, NumberInputRoot } from "@/components/ui/number-input";
 
 const BooksTable: React.FC<BooksTableProps> = ({
   books,
@@ -92,7 +94,7 @@ const BooksTable: React.FC<BooksTableProps> = ({
   const handleAddBook = handleSubmit(async (formData) => {
     const data: PostBodyCreateBookDto = {
       title: formData.title,
-      year: formData.year,
+      year: Number(formData.year),
       author_id: Number(formData.authorList),
     };
 
@@ -207,70 +209,88 @@ const BooksTable: React.FC<BooksTableProps> = ({
                       })}
                     />
                   </Field>
-                  <Field
-                    label="Year"
-                    invalid={!!errors.year}
-                    errorText={errors.year?.message}
+                  <HStack
+                    alignItems="start"
+                    justifyContent="space-between"
+                    gap={5}
                   >
-                    <Input
-                      {...register("year", {
-                        required: "Year is required",
-                        maxLength: {
-                          value: 4,
-                          message: "Year cannot exceed 4 numbers",
-                        },
-                        setValueAs: (value) => parseInt(value, 10),
-                      })}
-                    />
-                  </Field>
-                  <Field
-                    label="Rating"
-                    invalid={!!errors.authorList}
-                    errorText={errors.authorList?.message}
-                    width="320px"
-                  >
-                    <Controller
-                      control={control}
-                      name="authorList"
-                      render={({ field }) => (
-                        <SelectRoot
-                          name={field.name}
-                          value={field.value}
-                          onValueChange={({ value }) => {
-                            field.onChange(value);
-                          }}
-                          onInteractOutside={() => field.onBlur()}
-                          collection={authorList}
-                        >
-                          <SelectTrigger>
-                            <SelectValueText placeholder="Select movie" />
-                          </SelectTrigger>
-                          <SelectContent zIndex="popover" bgColor="white">
-                            {authorList.items.map((author) => (
-                              <SelectItem
-                                item={author}
-                                key={author.value}
-                                _hover={{
-                                  bgColor: "teal.100",
-                                  cursor: "pointer",
-                                }}
-                                _selected={{
-                                  bgColor: "teal.100",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                {author.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </SelectRoot>
-                      )}
-                    />
-                  </Field>
+                    <Field
+                      width="50%"
+                      label="Year"
+                      invalid={!!errors.year}
+                      errorText={errors.year?.message}
+                    >
+                      <Controller
+                        name="year"
+                        control={control}
+                        render={({ field }) => (
+                          <NumberInputRoot
+                            disabled={field.disabled}
+                            name={field.name}
+                            value={field.value}
+                            min={0}
+                            max={new Date().getFullYear()}
+                            onValueChange={({ value }) => {
+                              console.log(value);
+                              field.onChange(value);
+                            }}
+                          >
+                            <NumberInputField onBlur={field.onBlur} />
+                          </NumberInputRoot>
+                        )}
+                      />
+                    </Field>
+                    <Field
+                      width="50%"
+                      label="Author"
+                      invalid={!!errors.authorList}
+                      errorText={errors.authorList?.message}
+                    >
+                      <Controller
+                        control={control}
+                        name="authorList"
+                        render={({ field }) => (
+                          <SelectRoot
+                            name={field.name}
+                            value={field.value}
+                            onValueChange={({ value }) => {
+                              field.onChange(value);
+                            }}
+                            onInteractOutside={() => field.onBlur()}
+                            collection={authorList}
+                          >
+                            <SelectTrigger clearable>
+                              <SelectValueText placeholder="Select Author" />
+                            </SelectTrigger>
+                            <SelectContent zIndex="popover" bgColor="white">
+                              {authorList.items.map((author) => (
+                                <SelectItem
+                                  item={author}
+                                  key={author.value}
+                                  _hover={{
+                                    bgColor: "teal.100",
+                                    cursor: "pointer",
+                                  }}
+                                  _selected={{
+                                    bgColor: "teal.100",
+                                    cursor: "pointer",
+                                  }}
+                                >
+                                  {author.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </SelectRoot>
+                        )}
+                      />
+                    </Field>
+                  </HStack>
                 </Stack>
               </DialogBody>
               <DialogFooter>
-                <Button onClick={() => reset()}>Cancel</Button>
+                <Button onClick={() => reset({ authorList: [] })}>
+                  Cancel
+                </Button>
                 <Button type="submit">Add</Button>
               </DialogFooter>
             </form>

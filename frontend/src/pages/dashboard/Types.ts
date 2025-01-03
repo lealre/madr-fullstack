@@ -36,10 +36,30 @@ export interface BooksTableProps {
 export const bookFormSchema = z.object({
   title: z.string().nonempty({ message: "Title is required" }),
   year: z
-    .number({ invalid_type_error: "Year must be a number" })
-    .min(1, { message: "Year must be a positive number" })
-    .max(new Date().getFullYear(), { message: "Enter a valid year" }),
-  authorList: z.string({ message: "Framework is required" }).array(),
+    .string()
+    .nonempty({ message: "Year is required" })
+    .transform((val) => val.trim())
+    .refine((val) => /^\d+$/.test(val), {
+      message:
+        "Year must be a valid number without any letters or special characters",
+    })
+    .transform((val) => {
+      const num = parseInt(val, 10);
+      return String(num);
+    })
+    .refine(
+      (val) => {
+        const numVal = parseInt(val, 10);
+        return numVal >= 1 && numVal <= new Date().getFullYear();
+      },
+      {
+        message: "Enter a valid year",
+      }
+    ),
+
+  authorList: z
+    .array(z.string({ invalid_type_error: "Author must be a string" }))
+    .length(1, { message: "Author is required" }),
 });
 
 export type BookFormSchema = z.infer<typeof bookFormSchema>;
