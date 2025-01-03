@@ -28,13 +28,11 @@ const Header: React.FC = () => {
   };
 
   return (
-    <Box bg="teal.600" py={2}>
+    <Box bg="teal.600" p={2} height="full">
       <Flex
         justify="space-between"
         align="center"
         maxWidth="1400px"
-        mx="auto"
-        px={4}
       >
         <Heading size="3xl" color="white" margin={0}>
           <Button

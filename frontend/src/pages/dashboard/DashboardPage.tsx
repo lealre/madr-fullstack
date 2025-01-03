@@ -17,6 +17,7 @@ import useBooksService from "@/api/booksApi";
 import useAuthorsService from "@/api/authorsApi";
 import useUsersService from "@/api/usersApi";
 import { GetCurrentUserDto } from "@/dto/UsersDto";
+import Footer from "@/components/Footer";
 
 const Dashboard: React.FC = () => {
   const { getCurrentUser } = useUsersService();
@@ -224,19 +225,7 @@ const Dashboard: React.FC = () => {
           </Box>
           <Toaster />
         </Container>
-
-        <Box
-          as="footer"
-          bg="teal.600"
-          py={4}
-          textAlign="center"
-          height="100px"
-          mt={8}
-        >
-          <Text fontSize="sm">
-            © {new Date().getFullYear()} Your Company Name. All rights reserved.
-          </Text>
-        </Box>
+        <Footer />
       </Flex>
     </>
   );
