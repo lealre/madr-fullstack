@@ -29,11 +29,7 @@ const Header: React.FC = () => {
 
   return (
     <Box bg="teal.600" p={2} height="full">
-      <Flex
-        justify="space-between"
-        align="center"
-        maxWidth="1400px"
-      >
+      <Flex justify="space-between" align="center" maxWidth="1400px">
         <Heading size="3xl" color="white" margin={0}>
           <Button
             asChild
@@ -64,12 +60,26 @@ const Header: React.FC = () => {
             <DrawerHeader>
               <DrawerTitle></DrawerTitle>
             </DrawerHeader>
-            <DrawerBody>
+            <DrawerBody p={0}>
               <Flex
                 direction="column"
                 justify="flex-start"
                 alignItems="flex-start"
               >
+                <Button
+                  variant="plain"
+                  color="white"
+                  fontSize="18px"
+                  _hover={{ textDecoration: "none", color: "gray.200" }}
+                  _focus={{
+                    textDecoration: "none",
+                    outline: "none",
+                    color: "gray.100",
+                  }}
+                  asChild
+                >
+                  <Link href="/">Homepage</Link>
+                </Button>
                 {isAuthenticated ? (
                   <Button
                     variant="plain"
@@ -104,20 +114,22 @@ const Header: React.FC = () => {
                   )
                 )}
 
-                <Button
-                  variant="plain"
-                  color="white"
-                  fontSize="18px"
-                  _hover={{ textDecoration: "none", color: "gray.200" }}
-                  _focus={{
-                    textDecoration: "none",
-                    outline: "none",
-                    color: "gray.100",
-                  }}
-                  asChild
-                >
-                  <Link href="/singup">Sing Up</Link>
-                </Button>
+                {!isAuthenticated && location.pathname !== "/signup" && (
+                  <Button
+                    variant="plain"
+                    color="white"
+                    fontSize="18px"
+                    _hover={{ textDecoration: "none", color: "gray.200" }}
+                    _focus={{
+                      textDecoration: "none",
+                      outline: "none",
+                      color: "gray.100",
+                    }}
+                    asChild
+                  >
+                    <Link href="/signup">Sign Up</Link>
+                  </Button>
+                )}
               </Flex>
             </DrawerBody>
             <DrawerCloseTrigger _hover={{ backgroundColor: "teal.500" }} />

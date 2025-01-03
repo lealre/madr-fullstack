@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Container, Flex, Text } from "@chakra-ui/react";
 import { Toaster, toaster } from "@/components/ui/toaster";
 
-import Header from "../components/Header";
+import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 const HomePage: React.FC = () => {
