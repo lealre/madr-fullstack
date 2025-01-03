@@ -49,7 +49,11 @@ import {
   SelectValueText,
 } from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { NumberInputField, NumberInputRoot } from "@/components/ui/number-input";
+import {
+  NumberInputField,
+  NumberInputRoot,
+} from "@/components/ui/number-input";
+import AlertModal from "./Alert";
 
 const BooksTable: React.FC<BooksTableProps> = ({
   books,
@@ -73,6 +77,7 @@ const BooksTable: React.FC<BooksTableProps> = ({
     resolver: zodResolver(bookFormSchema),
   });
 
+  const [isOpenModalAlert, setIsOpenModalAlert] = useState(false);
   const [booksIDs, setBooksIDs] = useState<number[]>([]);
   const hasSelection = booksIDs.length > 0;
   const indeterminate = hasSelection && booksIDs.length < books.length;
@@ -370,7 +375,7 @@ const BooksTable: React.FC<BooksTableProps> = ({
             size="sm"
             colorPalette="red"
             _hover={{ background: "red.400" }}
-            onClick={() => deleteBooks()}
+            onClick={() => setIsOpenModalAlert(true)}
           >
             Delete
           </Button>
@@ -384,6 +389,12 @@ const BooksTable: React.FC<BooksTableProps> = ({
           </Button>
         </ActionBarContent>
       </ActionBarRoot>
+
+      <AlertModal
+        open={isOpenModalAlert}
+        setOpen={setIsOpenModalAlert}
+        deleteFunction={deleteBooks}
+      />
     </>
   );
 };

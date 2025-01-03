@@ -27,7 +27,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import useAuthorsService from "@/api/authorsApi";
 import { PostBodyCreateAuthorDto } from "@/dto/AuthorsDto";
 import { AuthorsTableProps } from "@/pages/dashboard/Types";
-
+import AlertModal from "./Alert";
 
 const AuthorsTable: React.FC<AuthorsTableProps> = ({
   authors,
@@ -47,6 +47,7 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({
   const [authorsIDs, setAuthorsIDs] = useState<number[]>([]);
   const hasSelection = authorsIDs.length > 0;
   const indeterminate = hasSelection && authorsIDs.length < authors.length;
+  const [isOpenModalAlert, setIsOpenModalAlert] = useState(false);
 
   const handleAddAuthor = handleSubmit(async (data) => {
     const response = await createAuthor(data);
@@ -251,7 +252,7 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({
             size="sm"
             colorPalette="red"
             _hover={{ background: "red.400" }}
-            onClick={() => deleteAuthors()}
+            onClick={() => setIsOpenModalAlert(true)}
           >
             Delete
           </Button>
@@ -265,6 +266,12 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({
           </Button>
         </ActionBarContent>
       </ActionBarRoot>
+
+      <AlertModal
+        open={isOpenModalAlert}
+        setOpen={setIsOpenModalAlert}
+        deleteFunction={deleteAuthors}
+      />
     </>
   );
 };

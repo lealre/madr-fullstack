@@ -63,3 +63,9 @@ export const bookFormSchema = z.object({
 });
 
 export type BookFormSchema = z.infer<typeof bookFormSchema>;
+
+export interface AlertProps {
+  open: boolean;
+  setOpen: (value: boolean) => void;
+  deleteFunction: () => void;
+}
