@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import ForeignKey, func
 from sqlalchemy.ext.asyncio import AsyncAttrs
@@ -8,7 +9,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 class Base(DeclarativeBase, AsyncAttrs):
     __abstract__ = True
 
-    def to_dict(self):
+    def to_dict(self) -> dict[str, Any]:
         return {
             field.name: getattr(self, field.name) for field in self.__table__.c
         }
@@ -39,7 +40,9 @@ class Book(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     year: Mapped[int]
     title: Mapped[str] = mapped_column(unique=True)
-    author_id: Mapped[int] = mapped_column(ForeignKey('authors.id'))
+    author_id: Mapped[int] = mapped_column(
+        ForeignKey('authors.id', ondelete='CASCADE')
+    )
     author: Mapped['Author'] = relationship(
         back_populates='books',
     )
@@ -53,4 +56,5 @@ class Author(Base):
     books: Mapped[list[Book]] = relationship(
         back_populates='author',
         cascade='all, delete-orphan',
+        passive_deletes=True,
     )
