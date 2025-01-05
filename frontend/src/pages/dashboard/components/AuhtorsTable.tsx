@@ -134,7 +134,7 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({
               <GrAdd size={20} color="white" />
             </Button>
           </DialogTrigger>
-          <DialogContent colorPalette="teal" bg="teal.50">
+          <DialogContent colorPalette="teal" bgColor="white">
             <DialogHeader>
               <DialogTitle>New Author</DialogTitle>
             </DialogHeader>
