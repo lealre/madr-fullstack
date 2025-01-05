@@ -29,7 +29,12 @@ const Header: React.FC = () => {
 
   return (
     <Box bg="teal.600" p={2} height="full">
-      <Flex justify="space-between" align="center" maxWidth="1400px">
+      <Flex
+        justify="space-between"
+        align="center"
+        maxWidth="1400px"
+        mx="auto"
+      >
         <Heading size="3xl" color="white" margin={0}>
           <Button
             asChild
