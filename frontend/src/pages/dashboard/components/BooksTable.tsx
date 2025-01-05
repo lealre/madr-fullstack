@@ -53,7 +53,7 @@ import {
   NumberInputField,
   NumberInputRoot,
 } from "@/components/ui/number-input";
-import AlertModal from "./Alert";
+import AlertModal from "./AlertModal";
 
 const BooksTable: React.FC<BooksTableProps> = ({
   books,

@@ -27,7 +27,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import useAuthorsService from "@/api/authorsApi";
 import { PostBodyCreateAuthorDto } from "@/dto/AuthorsDto";
 import { AuthorsTableProps } from "@/pages/dashboard/Types";
-import AlertModal from "./Alert";
+import AlertModal from "./AlertModal";
 
 const AuthorsTable: React.FC<AuthorsTableProps> = ({
   authors,
