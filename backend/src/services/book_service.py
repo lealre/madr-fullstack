@@ -114,10 +114,10 @@ async def get_books_list(
             count_query = count_query.filter(filter_condition)
 
         total_count = await session.scalar(count_query)
-        authors_db = await session.scalars(query.limit(limit).offset(offset))
-        authors_list = authors_db.all()
+        books_db = await session.scalars(query.limit(limit).offset(offset))
+        books_list = books_db.all()
 
-    return list(authors_list), total_count or 0
+    return list(books_list), total_count or 0
 
 
 async def get_books_ids_list(
@@ -131,11 +131,11 @@ async def get_books_ids_list(
     :return: A list of book IDs that exist in the database.
     """
     async with session:
-        authors_list = await session.scalars(
+        books_list = await session.scalars(
             select(Book.id).filter(Book.id.in_(book_ids))
         )
 
-    return list(authors_list.all())
+    return list(books_list.all())
 
 
 async def update_book_in_db(

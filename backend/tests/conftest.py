@@ -135,7 +135,7 @@ async def user_token(async_client: AsyncClient, user: MockedUser) -> str:
 async def superuser(async_session: AsyncSession) -> MockedUser:
     pwd = settings.FIRST_SUPERUSER_PASSWORD
 
-    superuser = User(  # type: ignore[call-arg]
+    superuser = User(
         username=settings.FIRST_SUPERUSER_USERNAME,
         email=settings.FIRST_SUPERUSER_EMAIL,
         password_hash=get_password_hash(pwd),

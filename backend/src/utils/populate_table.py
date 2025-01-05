@@ -13,7 +13,7 @@ async def populate_authors() -> None:
         async with AsyncSessionLocal() as session:
             for author, books in DATA.items():
                 author_schema = AuthorSchema(name=author)
-                new_author = Author(**author_schema.model_dump())  # type: ignore[call-arg]
+                new_author = Author(**author_schema.model_dump())
                 try:
                     async with session.begin():
                         session.add(new_author)
@@ -21,12 +21,10 @@ async def populate_authors() -> None:
                     pass
 
                 for title, year in books.items():
-                    book_schema = BookSchema(  # type: ignore[call-arg]
+                    book_schema = BookSchema(
                         title=title, year=year, author_id=new_author.id
                     )
-                    new_book = Book(  # type: ignore[call-arg]
-                        **book_schema.model_dump()
-                    )
+                    new_book = Book(**book_schema.model_dump())
                     try:
                         async with session.begin():
                             session.add(new_book)
