@@ -69,3 +69,10 @@ export interface AlertProps {
   setOpen: (value: boolean) => void;
   deleteFunction: () => void;
 }
+
+export interface ActionBarDeleteProps {
+  hasSelection: boolean;
+  ids: number[];
+  setIsOpenModalAlert: (value: boolean) => void;
+  setIDs: (value: number[]) => void;
+}

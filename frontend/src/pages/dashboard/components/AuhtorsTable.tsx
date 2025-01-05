@@ -15,19 +15,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  ActionBarContent,
-  ActionBarRoot,
-  ActionBarSelectionTrigger,
-  ActionBarSeparator,
-} from "@/components/ui/action-bar";
 import { toaster } from "@/components/ui/toaster";
 import { Checkbox } from "@/components/ui/checkbox";
 
 import useAuthorsService from "@/api/authorsApi";
 import { PostBodyCreateAuthorDto } from "@/dto/AuthorsDto";
 import { AuthorsTableProps } from "@/pages/dashboard/Types";
-import AlertModal from "./AlertModal";
+import AlertModal from "@/pages/dashboard/components/AlertModal";
+import ActionBarDelete from "@/pages/dashboard/components/ActionBarDelete";
 
 const AuthorsTable: React.FC<AuthorsTableProps> = ({
   authors,
@@ -168,11 +163,13 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({
                 <Button type="submit">Add</Button>
               </DialogFooter>
             </form>
-            <DialogCloseTrigger />
+            <DialogCloseTrigger
+              color="black"
+              _hover={{ bgColor: "teal.300" }}
+            />
           </DialogContent>
         </DialogRoot>
       </Flex>
-
       <Table.Root variant="line" size="sm">
         <Table.Header bg="teal.500">
           <Table.Row borderBottomWidth={3} borderColor="border.emphasized">
@@ -241,32 +238,12 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({
           )}
         </Table.Body>
       </Table.Root>
-
-      <ActionBarRoot open={hasSelection}>
-        <ActionBarContent bg="teal.50" borderWidth="1px">
-          <ActionBarSelectionTrigger>
-            {authorsIDs.length} selected
-          </ActionBarSelectionTrigger>
-          <ActionBarSeparator />
-          <Button
-            size="sm"
-            colorPalette="red"
-            _hover={{ background: "red.400" }}
-            onClick={() => setIsOpenModalAlert(true)}
-          >
-            Delete
-          </Button>
-          <Button
-            size="sm"
-            colorPalette="blue"
-            _hover={{ background: "blue.400" }}
-            onClick={() => setAuthorsIDs([])}
-          >
-            Clear Selection
-          </Button>
-        </ActionBarContent>
-      </ActionBarRoot>
-
+      <ActionBarDelete
+        hasSelection={hasSelection}
+        setIsOpenModalAlert={setIsOpenModalAlert}
+        setIDs={setAuthorsIDs}
+        ids={authorsIDs}
+      />
       <AlertModal
         open={isOpenModalAlert}
         setOpen={setIsOpenModalAlert}
