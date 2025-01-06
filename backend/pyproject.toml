@@ -7,14 +7,12 @@ readme = 'README.md'
 packages = [{include = 'src'}]
 
 [tool.poetry.dependencies]
+python = '3.12.*'
 alembic = '^1.13.2'
 aiosqlite = '^0.20.0'
 asyncpg = '^0.30.0'
 email-validator = '^2.2.0'
 fastapi = {extras = ['standard'], version = '^0.112.0'}
-fastapi-mail = "^1.4.2"
-itsdangerous = "^2.2.0"
-python = '3.12.*'
 python-multipart = '^0.0.9'
 pydantic-settings = '^2.4.0'
 pyjwt = '^2.9.0'

@@ -3,7 +3,6 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 from fastapi.security import OAuth2PasswordBearer
-from itsdangerous import URLSafeTimedSerializer
 from jwt import encode
 from pwdlib import PasswordHash
 
@@ -33,21 +32,3 @@ def create_access_token(data: dict[str, Any]) -> str:
     )
 
     return encoded_jwt
-
-
-serializer = URLSafeTimedSerializer(
-    secret_key=settings.SECRET_KEY, salt='email-configuration'
-)
-
-
-def create_url_safe_token(data: dict[str, str]) -> str:
-    token = serializer.dumps(data)
-    return token
-
-
-def decode_url_safe_token(token: str) -> dict[str, Any] | None:
-    try:
-        token_data: dict[str, Any] = serializer.loads(token)
-        return token_data
-    except Exception:
-        return None
