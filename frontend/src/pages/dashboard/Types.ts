@@ -25,7 +25,6 @@ export interface AuthorsTableProps {
 
 export interface BooksTableProps {
   books: BookResponseDto[];
-  authors: AuthorResponseDto[];
   searchQuery: string;
   setSearchQuery: (value: string) => void;
   setCurrentPage: (value: number) => void;

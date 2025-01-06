@@ -214,7 +214,6 @@ const Dashboard: React.FC = () => {
                   setCurrentPage={setBooksCurrentPage}
                   currentPage={booksCurrentPage}
                   books={books}
-                  authors={authors}
                   fetchBooks={fetchBooks}
                 />
                 <Center>

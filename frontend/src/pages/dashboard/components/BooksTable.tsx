@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { GrAdd } from "react-icons/gr";
 import { LuSearch } from "react-icons/lu";
@@ -49,10 +49,10 @@ import { PostBodyCreateBookDto } from "@/dto/BooksDto";
 import { AuthorResponseDto } from "@/dto/AuthorsDto";
 import AlertModal from "@/pages/dashboard/components/AlertModal";
 import ActionBarDelete from "@/pages/dashboard/components/ActionBarDelete";
+import useAuthorsService from "@/api/authorsApi";
 
 const BooksTable: React.FC<BooksTableProps> = ({
   books,
-  authors,
   searchQuery,
   setCurrentPage,
   currentPage,
@@ -60,6 +60,7 @@ const BooksTable: React.FC<BooksTableProps> = ({
   fetchBooks,
 }) => {
   const { createBook, deleteBooksBatch } = useBooksService();
+  const { getAuthors } = useAuthorsService();
   const {
     register,
     handleSubmit,
@@ -70,11 +71,29 @@ const BooksTable: React.FC<BooksTableProps> = ({
     mode: "onChange",
     resolver: zodResolver(bookFormSchema),
   });
+  const [allAuthors, setAllAuthors] = useState<AuthorResponseDto[]>([]);
   const [isOpenModalAlert, setIsOpenModalAlert] = useState(false);
   const [booksIDs, setBooksIDs] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const hasSelection = booksIDs.length > 0;
   const indeterminate = hasSelection && booksIDs.length < books.length;
+
+  useEffect(() => {
+    fecthAllAuthors();
+  }, []);
+
+  const fecthAllAuthors = async (): Promise<void> => {
+    const response = await getAuthors();
+    if (response.data && response.success) {
+      setAllAuthors(response.data.authors);
+    } else {
+      toaster.create({
+        title: response.error.detail,
+        type: "error",
+      });
+      setAllAuthors([]);
+    }
+  };
 
   const transformAuthorsToListCollection = (authors: AuthorResponseDto[]) => {
     return createListCollection({
@@ -88,7 +107,7 @@ const BooksTable: React.FC<BooksTableProps> = ({
   const authorList: ListCollection<{
     label: string;
     value: string;
-  }> = transformAuthorsToListCollection(authors);
+  }> = transformAuthorsToListCollection(allAuthors);
 
   const handleAddBook = handleSubmit(async (formData) => {
     if (isLoading) return;
