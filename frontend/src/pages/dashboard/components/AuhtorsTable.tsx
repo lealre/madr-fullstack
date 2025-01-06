@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { LuSearch } from "react-icons/lu";
 import { GrAdd } from "react-icons/gr";
-import { Button, Flex, Input, Stack, Table } from "@chakra-ui/react";
+import { Flex, Input, Stack, Table } from "@chakra-ui/react";
 import { InputGroup } from "@/components/ui/input-group";
+import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import {
   DialogBody,
@@ -41,10 +42,13 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({
   } = useForm<PostBodyCreateAuthorDto>({ mode: "onChange" });
   const [authorsIDs, setAuthorsIDs] = useState<number[]>([]);
   const hasSelection = authorsIDs.length > 0;
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const indeterminate = hasSelection && authorsIDs.length < authors.length;
   const [isOpenModalAlert, setIsOpenModalAlert] = useState(false);
 
   const handleAddAuthor = handleSubmit(async (data) => {
+    if (isLoading) return;
+    setIsLoading(true);
     const response = await createAuthor(data);
     if (response.data && response.success) {
       reset();
@@ -67,6 +71,8 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({
         });
       }
     }
+
+    setIsLoading(false);
   });
 
   const deleteAuthors = async () => {
@@ -159,8 +165,12 @@ const AuthorsTable: React.FC<AuthorsTableProps> = ({
                 </Stack>
               </DialogBody>
               <DialogFooter>
-                <Button onClick={() => reset()}>Cancel</Button>
-                <Button type="submit">Add</Button>
+                <Button loading={isLoading} onClick={() => reset()}>
+                  Cancel
+                </Button>
+                <Button loading={isLoading} type="submit">
+                  Add
+                </Button>
               </DialogFooter>
             </form>
             <DialogCloseTrigger

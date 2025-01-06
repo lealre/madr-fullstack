@@ -1,8 +1,8 @@
 import React, { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { GrAdd } from "react-icons/gr";
 import { LuSearch } from "react-icons/lu";
 import {
-  Button,
   createListCollection,
   Flex,
   Input,
@@ -11,16 +11,10 @@ import {
   Table,
   HStack,
 } from "@chakra-ui/react";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { InputGroup } from "@/components/ui/input-group";
-
-import {
-  bookFormSchema,
-  BookFormSchema,
-  BooksTableProps,
-} from "@/pages/dashboard/Types";
 import { toaster } from "@/components/ui/toaster";
-import useBooksService from "@/api/booksApi";
 import {
   DialogBody,
   DialogCloseTrigger,
@@ -31,10 +25,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Field } from "@/components/ui/field";
-import { Controller, useForm } from "react-hook-form";
-import { PostBodyCreateBookDto } from "@/dto/BooksDto";
-import { AuthorResponseDto } from "@/dto/AuthorsDto";
 import {
   SelectContent,
   SelectItem,
@@ -47,6 +37,16 @@ import {
   NumberInputField,
   NumberInputRoot,
 } from "@/components/ui/number-input";
+import { Field } from "@/components/ui/field";
+
+import {
+  bookFormSchema,
+  BookFormSchema,
+  BooksTableProps,
+} from "@/pages/dashboard/Types";
+import useBooksService from "@/api/booksApi";
+import { PostBodyCreateBookDto } from "@/dto/BooksDto";
+import { AuthorResponseDto } from "@/dto/AuthorsDto";
 import AlertModal from "@/pages/dashboard/components/AlertModal";
 import ActionBarDelete from "@/pages/dashboard/components/ActionBarDelete";
 
@@ -60,7 +60,6 @@ const BooksTable: React.FC<BooksTableProps> = ({
   fetchBooks,
 }) => {
   const { createBook, deleteBooksBatch } = useBooksService();
-
   const {
     register,
     handleSubmit,
@@ -71,9 +70,9 @@ const BooksTable: React.FC<BooksTableProps> = ({
     mode: "onChange",
     resolver: zodResolver(bookFormSchema),
   });
-
   const [isOpenModalAlert, setIsOpenModalAlert] = useState(false);
   const [booksIDs, setBooksIDs] = useState<number[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const hasSelection = booksIDs.length > 0;
   const indeterminate = hasSelection && booksIDs.length < books.length;
 
@@ -92,6 +91,8 @@ const BooksTable: React.FC<BooksTableProps> = ({
   }> = transformAuthorsToListCollection(authors);
 
   const handleAddBook = handleSubmit(async (formData) => {
+    if (isLoading) return;
+    setIsLoading(true);
     const data: PostBodyCreateBookDto = {
       title: formData.title,
       year: Number(formData.year),
@@ -120,6 +121,8 @@ const BooksTable: React.FC<BooksTableProps> = ({
         });
       }
     }
+
+    setIsLoading(false);
   });
 
   const deleteBooks = async () => {
@@ -288,10 +291,15 @@ const BooksTable: React.FC<BooksTableProps> = ({
                 </Stack>
               </DialogBody>
               <DialogFooter>
-                <Button onClick={() => reset({ authorList: [] })}>
+                <Button
+                  loading={isLoading}
+                  onClick={() => reset({ authorList: [], title: "", year: "" })}
+                >
                   Cancel
                 </Button>
-                <Button type="submit">Add</Button>
+                <Button loading={isLoading} type="submit">
+                  Add
+                </Button>
               </DialogFooter>
             </form>
             <DialogCloseTrigger
