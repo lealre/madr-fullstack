@@ -11,7 +11,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { ImMenu } from "react-icons/im";
+import { ImBooks, ImMenu } from "react-icons/im";
 
 const Header: React.FC = () => {
   const location = useLocation();
@@ -29,12 +29,7 @@ const Header: React.FC = () => {
 
   return (
     <Box bg="teal.600" p={2} height="full">
-      <Flex
-        justify="space-between"
-        align="center"
-        maxWidth="1400px"
-        mx="auto"
-      >
+      <Flex justify="space-between" align="center" maxWidth="1400px" mx="auto">
         <Heading size="3xl" color="white" margin={0}>
           <Button
             asChild
@@ -44,7 +39,18 @@ const Header: React.FC = () => {
             _hover={{ color: "gray.200", textDecoration: "none" }}
             focusRing="none"
           >
-            <Link href="/">MADR</Link>
+            <Link href="/">
+              <ImBooks
+                size={20}
+                style={{
+                  marginRight: "1px",
+                  verticalAlign: "middle",
+                  width: "32px",
+                  height: "32px",
+                }}
+              />
+              MADR
+            </Link>
           </Button>
         </Heading>
 

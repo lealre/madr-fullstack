@@ -10,6 +10,9 @@ const customConfig = defineConfig({
       color: "black",
       margin: "0 auto",
     },
+    "*": {
+      fontFamily: "'Roboto Mono', monospace",
+    },
   },
   theme: {
     breakpoints: {
