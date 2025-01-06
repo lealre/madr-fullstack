@@ -62,7 +62,7 @@ exclude = [ ".venv", "migrations"]
 run = 'fastapi dev src/app.py'
 superuser = 'python src/utils/create_supersuer.py'
 pre_test = 'task lint'
-test = 'pytest --cov=src --cov-report=term-missing:skip-covered -vv'
+test = 'pytest --cov=src --cov-report=term-missing:skip-covered --cov-fail-under=100 -vv'
 post_test = 'coverage html'
 lint = 'ruff check . && ruff check . --diff'
 format = 'ruff check . --fix && ruff format .'
