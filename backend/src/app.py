@@ -20,5 +20,5 @@ app.include_router(api_router)
 
 
 @app.get('/')
-def home_root() -> Message:
+def home_root() -> Message:  # pragma: no cover
     return Message(message='Root Endpoint!')
