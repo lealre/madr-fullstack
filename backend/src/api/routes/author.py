@@ -77,7 +77,7 @@ async def get_author_by_id(author_id: int, session: SessionDep) -> Any:
 async def get_authors_with_name_like(
     session: SessionDep,
     name: str | None = None,
-    limit: int = 20,
+    limit: int | None = None,
     offset: int = 0,
 ) -> Any:
     """

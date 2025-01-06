@@ -247,10 +247,10 @@ async def test_list_authors_filter_name_empty_return_all_authors(
     assert response.json()['total_results'] == expected_results
 
 
-async def test_list_authors_pagination_should_return_20_authors(
+async def test_list_authors_pagination_no_default_limit_applied(
     async_client: AsyncClient, async_session: AsyncSession
 ) -> None:
-    expected_authors = 20
+    expected_authors = 25
     expected_results = 25
 
     async with async_session.begin():

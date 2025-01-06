@@ -60,33 +60,31 @@ async def get_author_by_name(
 
 async def get_filtered_authors_list(
     session: AsyncSession,
+    limit: int | None,
     author_name: str | None = None,
-    limit: int = 20,
     offset: int = 0,
 ) -> tuple[list[Author], int]:
     """
     Retrieve a paginated list of authors whose names contain a specified
-    substring and return the total number of authors in the database.
+    substring, and return the total number of authors in the database.
 
-    This function supports optional filtering by author name. If a name
-    substring is provided, the returned list and count are filtered
-    accordingly. Otherwise, the function retrieves all authors.
+    This function supports optional filtering by author name. If a substring
+    is provided, the returned list and count will be filtered accordingly.
+    If no substring is provided, the function retrieves all authors.
 
     :param session: The asynchronous database session used to execute the
                     queries.
     :param author_name: An optional substring to filter authors by name. If
                         None, no filtering is applied.
-    :param limit: The maximum number of authors to retrieve per page
-                    (default: 20).
+    :param limit: The maximum number of authors to retrieve per page.
     :param offset: The number of authors to skip before retrieving results
-                    (default: 0).
+                    (default is 0).
     :return: A tuple containing:
-             - authors_list: A list of Author objects matching the search
-                criteria.
+             - authors_list: A list of `Author` objects matching the search
+               criteria.
              - total_count: The total number of authors in the database
-                (filtered or unfiltered).
+               (filtered or unfiltered).
     """
-
     async with session:
         query = select(Author)
         count_query = select(func.count(Author.id))
@@ -96,8 +94,11 @@ async def get_filtered_authors_list(
             query = query.filter(filter_condition)
             count_query = count_query.filter(filter_condition)
 
+        if limit:
+            query = query.limit(limit).offset(offset)
+
         total_count = await session.scalar(count_query)
-        authors_db = await session.scalars(query.limit(limit).offset(offset))
+        authors_db = await session.scalars(query)
         authors_list = authors_db.all()
 
     return list(authors_list), total_count or 0
