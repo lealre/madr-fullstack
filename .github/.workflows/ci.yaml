@@ -1,0 +1,43 @@
+name: Backend Test Suite
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{matrix.python-version}}
+
+      - name: Install Poetry
+        run: curl -sSL https://install.python-poetry.org | python3 - --version 1.7.1
+
+      - name: Add Poetry to PATH
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install Dependencies
+        run: poetry install
+        working-directory: backend
+
+      - name: Check Type Annotations
+        run: poetry run mypy .
+        working-directory: backend
+
+      - name: Run Code Linter
+        run: poetry run task lint
+        working-directory: backend
+
+      - name: Execute Unit Tests
+        run: poetry run task test
+        working-directory: backend
