@@ -1,0 +1,19 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_APP_BACKEND_ADDRESS=${VITE_API_URL:-http://localhost:8000}
+    container_name: frontend
+    restart: always
+    ports:
+      - 3000:3000
+    networks:
+      - network
+    env_file:
+      - ./frontend/.env
+
+networks:
+  network:
+    driver: bridge

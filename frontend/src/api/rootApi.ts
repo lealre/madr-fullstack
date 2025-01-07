@@ -6,7 +6,7 @@ import axios, {
 } from "axios";
 import qs from "qs";
 
-const baseURL = "http://localhost:8000";
+const baseURL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 const useRootApiService = () => {
   const axiosInstance: AxiosInstance = axios.create({
