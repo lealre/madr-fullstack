@@ -4,7 +4,6 @@ poetry run alembic downgrade base
 
 poetry run alembic upgrade head
 
-
 echo "Running create_superuser.py..."
 poetry run python src/utils/create_superuser.py
 
