@@ -23,7 +23,7 @@ from src.models import User
 # https://docs.sqlalchemy.org/en/20/core/event.html
 # https://docs.sqlalchemy.org/en/20/core/events.html#sqlalchemy.events.PoolEvents.connect
 @event.listens_for(Engine, 'connect', named=True)
-def set_sqlite_pragma(**kw: dict[str, Any]) -> None:
+def set_sqlite_pragma(**kw: dict[str, Any]) -> None:  # pragma: no cover
     dbapi_connection = kw.get('dbapi_connection')
     if isinstance(dbapi_connection, AsyncAdapt_aiosqlite_connection):
         cursor = dbapi_connection.cursor()
@@ -40,26 +40,27 @@ AsyncSessionLocal = async_sessionmaker(
 )
 
 
-async def init_db(session: AsyncSession) -> None:
-    user = await session.scalar(
-        select(User).where(User.email == settings.FIRST_SUPERUSER_EMAIL)
-    )
-
-    if not user:
-        hashed_password = get_password_hash(settings.FIRST_SUPERUSER_PASSWORD)
-
-        user_db = User(
-            username=settings.FIRST_SUPERUSER_USERNAME,
-            email=settings.FIRST_SUPERUSER_EMAIL,
-            password_hash=hashed_password,
-            is_superuser=True,
-            is_verified=True,
+async def create_superuser(session: AsyncSession) -> None:
+    async with session.begin():
+        user = await session.scalar(
+            select(User).where(User.email == settings.FIRST_SUPERUSER_EMAIL)
         )
 
-        session.add(user_db)
-        await session.commit()
+        if not user:
+            hashed_password = get_password_hash(
+                settings.FIRST_SUPERUSER_PASSWORD
+            )
+
+            user_db = User(
+                username=settings.FIRST_SUPERUSER_USERNAME,
+                email=settings.FIRST_SUPERUSER_EMAIL,
+                password_hash=hashed_password,
+                is_superuser=True,
+                is_verified=True,
+            )
+
+            session.add(user_db)
 
         print('Superuser created')
-        return
 
     print('Superuser with these credentials already exists')
