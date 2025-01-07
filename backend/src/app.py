@@ -20,5 +20,5 @@ app.include_router(api_router)
 
 
 @app.get('/')
-def home_root() -> Message:
+async def home_root() -> Message:
     return Message(message='Root Endpoint!')
