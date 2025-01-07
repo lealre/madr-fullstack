@@ -1,5 +1,5 @@
 import useRootApiService from "@/api/rootApi";
-import ApiResponseDto from "@/dto/ApiResponseDto";
+import {ApiResponseDto} from "@/dto/ApiResponseDto";
 import {
   GetCurrentUserDto,
   SingUpRequestDto,
