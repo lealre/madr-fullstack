@@ -5,6 +5,7 @@ import { Toaster, toaster } from "@/components/ui/toaster";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { ImBooks } from "react-icons/im";
 
 const HomePage: React.FC = () => {
   const location = useLocation();
@@ -32,8 +33,26 @@ const HomePage: React.FC = () => {
             alignItems="center"
             textAlign="center"
           >
-            <Text textStyle="5xl">Welcome to MADR App!</Text>
-            <Text textStyle="xl">Add links here to login or logout</Text>
+            <Flex direction="row" textAlign="center" alignItems="self-end">
+              <ImBooks
+                style={{
+                  marginRight: "20px",
+                  verticalAlign: "middle",
+                  width: "50px",
+                  height: "50px",
+                }}
+              />
+              <Text textStyle="5xl">Homepage</Text>
+              <ImBooks
+                size={50}
+                style={{
+                  marginLeft: "20px",
+                  verticalAlign: "middle",
+                  width: "50px",
+                  height: "50px",
+                }}
+              />
+            </Flex>
           </Flex>
         </Container>
       </Flex>

@@ -120,7 +120,7 @@ const BooksTable: React.FC<BooksTableProps> = ({
 
     const response = await createBook(data);
     if (response.data && response.success) {
-      reset();
+      reset({ authorList: [], title: "", year: "" });
       toaster.create({
         title: "New book created.",
         type: "success",
