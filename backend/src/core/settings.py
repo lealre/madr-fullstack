@@ -6,7 +6,7 @@ class Settings(BaseSettings):
         env_file='.env', env_file_encoding='utf-8', extra='allow'
     )
 
-    DATABASE_URL: str = 'sqlite+aiosqlite:///./database.db'
+    DATABASE_URL: str = 'sqlite+aiosqlite:///./dev.db'
 
     SECRET_KEY: str = 'your-secret-key'
     ALGORITHM: str = 'HS256'
