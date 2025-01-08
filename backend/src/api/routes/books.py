@@ -13,7 +13,6 @@ from src.schemas.books import (
     BookUpdate,
     DeteleBooksBulk,
 )
-from src.schemas.responses import response_model
 from src.services import author_service, book_service
 
 router = APIRouter()
@@ -24,10 +23,6 @@ router = APIRouter()
     response_model=BookResponseCreate,
     status_code=HTTPStatus.CREATED,
     dependencies=[Depends(get_current_user)],
-    responses={
-        HTTPStatus.BAD_REQUEST: response_model,
-        HTTPStatus.UNAUTHORIZED: response_model,
-    },
 )
 async def add_book(session: SessionDep, book_in: BookSchema) -> Any:
     """
@@ -62,14 +57,7 @@ async def add_book(session: SessionDep, book_in: BookSchema) -> Any:
     )
 
 
-@router.get(
-    '/{book_id}',
-    response_model=BookPublic,
-    responses={
-        HTTPStatus.NOT_FOUND: response_model,
-        HTTPStatus.UNAUTHORIZED: response_model,
-    },
-)
+@router.get('/{book_id}', response_model=BookPublic)
 async def get_book_by_id(book_id: int, session: SessionDep) -> Any:
     """
     Get a book by ID.
@@ -112,14 +100,7 @@ async def get_books_like(
     return {'books': book_list, 'total_results': total_results}
 
 
-@router.patch(
-    '/{book_id}',
-    response_model=BookPublic,
-    responses={
-        HTTPStatus.NOT_FOUND: response_model,
-        HTTPStatus.UNAUTHORIZED: response_model,
-    },
-)
+@router.patch('/{book_id}', response_model=BookPublic)
 async def update_book(
     book_id: int, book: BookUpdate, session: SessionDep, user: CurrentUser
 ) -> Any:
@@ -148,10 +129,6 @@ async def update_book(
     '/{book_id}',
     response_model=Message,
     dependencies=[Depends(get_current_user)],
-    responses={
-        HTTPStatus.NOT_FOUND: response_model,
-        HTTPStatus.UNAUTHORIZED: response_model,
-    },
 )
 async def delete_book(session: SessionDep, book_id: int) -> Message:
     """
@@ -175,10 +152,6 @@ async def delete_book(session: SessionDep, book_id: int) -> Message:
     '/delete/batch',
     response_model=Message,
     dependencies=[Depends(get_current_user)],
-    responses={
-        HTTPStatus.NOT_FOUND: response_model,
-        HTTPStatus.UNAUTHORIZED: response_model,
-    },
 )
 async def delete_books_in_batch(
     session: SessionDep,

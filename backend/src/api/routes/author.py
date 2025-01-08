@@ -11,7 +11,6 @@ from src.schemas.authors import (
     DeteleAuthosBulk,
 )
 from src.schemas.base import Message
-from src.schemas.responses import response_model
 from src.services import author_service
 
 router = APIRouter()
@@ -22,10 +21,6 @@ router = APIRouter()
     response_model=AuthorPublic,
     status_code=HTTPStatus.CREATED,
     dependencies=[Depends(get_current_user)],
-    responses={
-        HTTPStatus.BAD_REQUEST: response_model,
-        HTTPStatus.UNAUTHORIZED: response_model,
-    },
 )
 async def add_author(author_in: AuthorSchema, session: SessionDep) -> Any:
     """
@@ -48,14 +43,7 @@ async def add_author(author_in: AuthorSchema, session: SessionDep) -> Any:
     return new_author
 
 
-@router.get(
-    '/{author_id}',
-    response_model=AuthorPublic,
-    responses={
-        HTTPStatus.NOT_FOUND: response_model,
-        HTTPStatus.UNAUTHORIZED: response_model,
-    },
-)
+@router.get('/{author_id}', response_model=AuthorPublic)
 async def get_author_by_id(author_id: int, session: SessionDep) -> Any:
     """
     Get an author by their ID.
@@ -97,10 +85,6 @@ async def get_authors_with_name_like(
     '/{author_id}',
     response_model=AuthorPublic,
     dependencies=[Depends(get_current_user)],
-    responses={
-        HTTPStatus.NOT_FOUND: response_model,
-        HTTPStatus.UNAUTHORIZED: response_model,
-    },
 )
 async def update_author(
     author_id: int,
@@ -131,10 +115,6 @@ async def update_author(
     '/{author_id}',
     response_model=Message,
     dependencies=[Depends(get_current_user)],
-    responses={
-        HTTPStatus.NOT_FOUND: response_model,
-        HTTPStatus.UNAUTHORIZED: response_model,
-    },
 )
 async def delete_author(
     session: SessionDep,
@@ -164,10 +144,6 @@ async def delete_author(
     '/delete/batch',
     response_model=Message,
     dependencies=[Depends(get_current_user)],
-    responses={
-        HTTPStatus.NOT_FOUND: response_model,
-        HTTPStatus.UNAUTHORIZED: response_model,
-    },
 )
 async def delete_author_batch(
     session: SessionDep,
