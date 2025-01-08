@@ -1,4 +1,4 @@
-# MADR - A digital book collection - FastAPI + React
+# MADR - A Digital Book Collection: FastAPI + React
 
 This project consists of a web application for a simplified version of a digital book collection. It is an extension of [this repo](https://github.com/lealre/madr-fastapi).
 
@@ -19,16 +19,21 @@ This project consists of a web application for a simplified version of a digital
 
 Below is a quick demonstration of the app working in a local Docker environment.
 
-![](media/full-.demo.gif)
+![](media/full-demo.gif)
 
 ## About the Project
 
-- Login
-- Sign Up
-- Create and Delete Authors
-- Create and Delete Books based on the Authors list
+The app serves as a simple catalog of authors and books, where you can only register a book if an author is already registered. The dashboard area allows users to switch between author and book tabs, select records to delete in batch, add new records by opening a modal, and search for specific records. The search functionality enables searching by book or author name, based on the currently active tab.
 
-The idea is to gradually add more features as they are listed in the Further Improvements section.
+On the frontend, the JWT is stored in local storage. The dashboard area is a protected page requiring authentication, where users must log in to manage the collection records.
+
+Below is a demonstration of a user trying to access the `/dashboard` endpoint. Since the user is not authenticated, the app redirects them to the `/login` page and displays a message in a toast component.
+
+![](media/auth-demo.gif)
+
+Although the backend API allows role-based functionality between admin and user, this distinction has not yet been implemented in the frontend.
+
+The idea is to gradually add more features and improve the code as they are listed in the Further Improvements section.
 
 #### Folder Structure
 
@@ -90,3 +95,19 @@ The idea is to gradually add more features as they are listed in the Further Imp
 ## How to Run This Project
 
 ## Further Improvements
+
+Some additional functionalities that could be implemented in the app:
+
+- Add more fields to the books and authors tables.
+- Implement token refresh.
+- Improve the search system by:
+  - Applying more filters and allowing searches for authors in the books tab.
+  - Creating more filter and sorting options.
+- Add the option to edit records.
+- Utilize the role-based system, where:
+  - Only the admin role can manage the collection.
+  - Provide a user area where regular users can star books, leave reviews, and rank them.
+  - Allow users to verify their accounts via email and recover access if needed.
+  - Enable users to submit requests for new books to be added.
+
+Regarding the code, the frontend still lacks tests, linter checks, and integration into the CI routine.
