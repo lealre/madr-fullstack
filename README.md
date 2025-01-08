@@ -1,30 +1,34 @@
-# MADR - A simplified version of a digital book collection - FastAPI + React
+# MADR - A digital book collection - FastAPI + React
 
 This project consists of a web application for a simplified version of a digital book collection. It is an extension of [this repo](https://github.com/lealre/madr-fastapi).
 
 - 💻 **Backend**
-  - [FastAPI](https://fastapi.tiangolo.com/){:target="\_blank"} for the Python backend API, with asynchronous routes.
-  - [SQLAlchemy](https://www.sqlalchemy.org/){:target="\_blank"} for Python SQL database interactions (ORM).
-  - [Pydantic](https://docs.pydantic.dev/latest/){:target="\_blank"}, used by FastAPI, for data validation and settings management.
-  - PostgreSQL as the SQL database, using the [Asyncpg](https://magicstack.github.io/asyncpg/current/){:target="\_blank"} driver.
-  - Tests with [Pytest](https://docs.pytest.org/en/stable/){:target="\_blank"} and [Testcontainers](https://testcontainers-python.readthedocs.io/en/latest/){:target="\_blank"}.
-  - [Pre-commit](https://pre-commit.com/){:target="\_blank"} with [Ruff](https://docs.astral.sh/ruff/){:target="\_blank"} for linting.
+  - [FastAPI](https://fastapi.tiangolo.com/) for the Python backend API, with asynchronous routes.
+  - [SQLAlchemy](https://www.sqlalchemy.org/) for Python SQL database interactions (ORM).
+  - [Pydantic](https://docs.pydantic.dev/latest/), used by FastAPI, for data validation and settings management.
+  - PostgreSQL as the SQL database, using the [Asyncpg](https://magicstack.github.io/asyncpg/current/) driver.
+  - Tests with [Pytest](https://docs.pytest.org/en/stable/) and [Testcontainers](https://testcontainers-python.readthedocs.io/en/latest/).
+  - [Pre-commit](https://pre-commit.com/) with [Ruff](https://docs.astral.sh/ruff/) for linting.
   - CI (Continuous Integration) based on GitHub Actions.
 - 🌐 **Frontend**
-  - [React](https://react.dev/){:target="\_blank"} using TypeScript and Vite.
-  - [Chakra UI](https://www.chakra-ui.com/){:target="\_blank"} for frontend components.
+  - [React](https://react.dev/) using TypeScript and Vite.
+  - [Chakra UI](https://www.chakra-ui.com/) for frontend components.
 - 🔒 Secure password hashing by default.
 - 🔑 JWT (JSON Web Token) authentication.
 - 🐋 Docker Compose for running all services together, including the PostgreSQL database.
 
+Below is a quick demonstration of the app working in a local Docker environment.
+
+![](media/full-.demo.gif)
+
 ## About the Project
 
 - Login
-- SignUp
+- Sign Up
 - Create and Delete Authors
-- Create and Delte Books based on the Auhtors list
+- Create and Delete Books based on the Authors list
 
-The idea is to gradually adding more features as they are listed in the Further Improvemets section
+The idea is to gradually add more features as they are listed in the Further Improvements section.
 
 #### Folder Structure
 
