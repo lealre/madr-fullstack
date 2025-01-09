@@ -1,6 +1,8 @@
 # MADR - A Digital Book Collection: FastAPI + React
 
-This project consists of a web application for a simplified version of a digital book collection. It is an extension of [this repo](https://github.com/lealre/madr-fastapi).
+This project consists of a web application for a simplified version of a digital book collection.
+
+It is an extension of [this repo](https://github.com/lealre/madr-fastapi).
 
 - 💻 **Backend**
   - [FastAPI](https://fastapi.tiangolo.com/) for the Python backend API, with asynchronous routes.
@@ -11,8 +13,12 @@ This project consists of a web application for a simplified version of a digital
   - [Pre-commit](https://pre-commit.com/) with [Ruff](https://docs.astral.sh/ruff/) for linting.
   - CI (Continuous Integration) based on GitHub Actions.
 - 🌐 **Frontend**
+
   - [React](https://react.dev/) using TypeScript and Vite.
   - [Chakra UI](https://www.chakra-ui.com/) for frontend components.
+  - [Axios](https://axios-http.com/docs/intro) to handle the backend API requests.
+  - [React Hook Form](https://react-hook-form.com/) to handle the submission of data in forms.
+
 - 🔒 Secure password hashing by default.
 - 🔑 JWT (JSON Web Token) authentication.
 - 🐋 Docker Compose for running all services together, including the PostgreSQL database.
@@ -20,6 +26,13 @@ This project consists of a web application for a simplified version of a digital
 Below is a quick demonstration of the app working in a local Docker environment.
 
 ![](media/full-demo.gif)
+
+## Table of Contents
+
+- [About the Project](#about-the-project)
+  - [Folder Structure](#folder-structure)
+- [How to Run This Project](#how-to-run-this-project)
+- [Further Improvements](#further-improvements)
 
 ## About the Project
 
@@ -93,6 +106,81 @@ The idea is to gradually add more features and improve the code as they are list
 ```
 
 ## How to Run This Project
+
+All the steps here are intended for a `bash` terminal.
+
+This section shows how to run the project using Docker by building all three services together: Backend, Frontend, and the PostgreSQL database.
+
+[How to install Docker Compose](https://docs.docker.com/compose/install/)
+
+1 - Clone the repo locally:
+
+```bash
+git clone https://github.com/lealre/madr-fullstack.git
+```
+
+2 - Access the project directory:
+
+```bash
+cd madr-fullstack
+```
+
+Once inside the folder, it is possible to set the environment variables in the `.env` file for both the backend and frontend. In both the `backend` and `frontend` folders, there is an `.env-example` file that simulates the `.env` variables.
+
+In the root directory, run the commands below to use them as `.env`:
+
+- Backened
+
+  ```bash
+  mv backend/.env-example backend/.env
+  ```
+
+- Frontend
+
+  ```bash
+  mv frontend/.env-example frontend/.env
+  ```
+
+The `.env` file is not strictly necessary, as the `docker-compose.yaml` will use defautl values in case the files are not set in the folders, but if the `DATABASE_URL` is set, its necessary to switch the value depending on whether it will use the PostgreSQL database in the Docker environment or the local SQLite. By default, the `DATABASE_URL` is set to use SQLite.
+
+Below are the examples of the `.env` variables:
+
+- Backend
+
+  ```
+  DATABASE_URL=postgresql+asyncpg://user:password@postgres:5432/madr_db
+
+  SECRET_KEY=your-secret-key
+  ALGORITHM=HS256
+  ACCESS_TOKEN_EXPIRE_MINUTES=60
+
+  FIRST_SUPERUSER_USERNAME=admin
+  FIRST_SUPERUSER_EMAIL=admin@admin.com'
+  FIRST_SUPERUSER_PASSWORD=admin
+  ```
+
+- Frontend
+
+  ```
+  VITE_API_URL=http://localhost:8000
+  ```
+
+Once the variables in the `.env` file are defined, the following command will build and start the application:
+
+```bash
+docker compose up
+```
+
+After the container is ready, it will automatically populate the database with some example data, as shown in the video demo, and also create the user based on the `.env` variables set. The default user credentials are:
+
+`email: admin@admin.com`
+`password: admin`
+
+You can access the application via the link below:
+
+```bash
+http://localhost:3000
+```
 
 ## Further Improvements
 
