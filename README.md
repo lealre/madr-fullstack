@@ -129,7 +129,7 @@ Once inside the folder, it is possible to set the environment variables in the `
 
 In the root directory, run the commands below to use them as `.env`:
 
-- Backened
+- Backend
 
   ```bash
   mv backend/.env-example backend/.env
